@@ -1,0 +1,5 @@
+# Derive metered rhythm with the canonical allocation rule
+
+For a section with confirmed banshi, a valid ban-yan cycle, and a unique match, the converter will reimplement gongchepu.net's generic metered allocation as the versioned `kunqu-gcn-rhythm-v1` reading rule and mark the resulting onset and duration values `derived`. It groups notes by written anchors, gives ordinary main notes weight 1 and time-bearing side notes weight 0.5, recursively splits near the half-weight boundary, and applies the reviewed within-main side-note proportions. If any input context used by the rule is itself inferred, dependent results inherit `inferred`.
+
+These values are determined by the written anchors and accepted rule rather than playback timestamps. ADR-0005's inferred minimal quantization remains the fallback only when prerequisites fail, the rule is ambiguous, or the result cannot close the measure. Generated gap rests, free-meter timing, unmarked melodic templates, qiangge-specific playback templates, and synthesizer expression are outside this decision.
