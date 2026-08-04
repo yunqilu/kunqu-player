@@ -1,0 +1,15 @@
+{
+  "$id": "https://kunqu-player.local/schema/reviewed-source-v1.json",
+  "type": "object",
+  "required": ["schemaVersion", "scoreId", "baseHash", "sourceHash", "reviewHash", "lines", "sections"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "scoreId": { "type": "string", "minLength": 1 },
+    "baseHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reviewHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "lines": { "type": "array" },
+    "sections": { "type": "array" }
+  },
+  "additionalProperties": true
+}

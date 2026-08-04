@@ -1,0 +1,29 @@
+{
+  "id": "kunqu-default-v1",
+  "version": 1,
+  "referenceHz": 440,
+  "temperament": "12-TET",
+  "defaultShangMidi": 62,
+  "diseShangMidi": {
+    "shangzi": 58,
+    "chizi": 60,
+    "xiaogong": 62,
+    "fanzi": 63,
+    "liuzi": 65,
+    "zhenggong": 67,
+    "yizi": 69
+  },
+  "banshiMeters": {
+    "liushui": { "beats": 1, "beatType": 4 },
+    "one-ban-one-yan": { "beats": 2, "beatType": 4 },
+    "one-ban-three-yan": { "beats": 4, "beatType": 4 },
+    "one-ban-three-yan-added": { "beats": 8, "beatType": 4, "grouping": [4, 4] },
+    "sanban": { "senzaMisura": true }
+  },
+  "anchorPositions": {
+    "liushui": { "1": 0, "2": 0, "3": 0, "5": 0, "6": 0.5, "7": 0.5 },
+    "one-ban-one-yan": { "1": 0, "2": 1, "3": 1, "5": 1, "6": 0.5, "7": 1.5 },
+    "one-ban-three-yan": { "1": 0, "2": 3, "3": 2, "5": 3, "6": 0.5, "7": 2.5 },
+    "one-ban-three-yan-added": { "1": 0, "2": 3, "3": 2, "4": 4, "5": 7, "6": 0.5, "7": 2.5, "8": 4.5 }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$id": "https://kunqu-player.local/schema/canonical-score-v1.json",
+  "type": "object",
+  "required": ["schemaVersion", "scoreId", "profile", "sections", "diagnostics"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "scoreId": { "type": "string", "minLength": 1 },
+    "profile": { "type": "string", "minLength": 1 },
+    "sections": { "type": "array" },
+    "diagnostics": { "type": "array" }
+  },
+  "additionalProperties": true
+}

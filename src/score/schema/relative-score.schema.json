@@ -1,0 +1,14 @@
+{
+  "$id": "https://kunqu-player.local/schema/relative-score-v1.json",
+  "type": "object",
+  "required": ["schemaVersion", "scoreId", "sourceHash", "sections", "diagnostics", "provenanceIndex"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "scoreId": { "type": "string", "minLength": 1 },
+    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sections": { "type": "array" },
+    "diagnostics": { "type": "array" },
+    "provenanceIndex": { "type": "object" }
+  },
+  "additionalProperties": true
+}

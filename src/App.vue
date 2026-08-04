@@ -4,6 +4,7 @@ import LeftColumn from './components/LeftColumn.vue'
 import ReaderView from './components/ReaderView.vue'
 import Transport from './components/Transport.vue'
 import Timeline from './components/Timeline.vue'
+import ScoreReviewPanel from './components/ScoreReviewPanel.vue'
 import { clock } from './composables/useClock'
 import { model } from './lib/model'
 
@@ -78,6 +79,10 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
         <Timeline v-show="showTimeline" />
       </div>
     </div>
+    <details class="review-drawer">
+      <summary>五线谱审阅</summary>
+      <ScoreReviewPanel />
+    </details>
   </div>
 </template>
 
@@ -102,4 +107,7 @@ video { width: 100%; height: 100%; display: block; background: #15120d; object-f
 .novideo { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; gap: 6px; color: #b9ad97; padding: 16px; }
 .play-ic { font-size: 34px; opacity: .5; }
 .novideo .sm { font-size: 11.5px; opacity: .7; }
+.review-drawer { position: fixed; z-index: 30; right: 14px; bottom: 12px; width: min(820px, calc(100vw - 28px)); }
+.review-drawer > summary { width: max-content; margin-left: auto; padding: 7px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: 0 5px 18px #0002; cursor: pointer; list-style: none; }
+.review-drawer[open] > summary { margin-bottom: 6px; }
 </style>

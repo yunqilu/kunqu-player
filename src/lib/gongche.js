@@ -16,7 +16,7 @@ const ORN_PINYIN = { h: 'huoqiang', s: 'souqiang', d: 'dieqiang', c: 'cuoqiang' 
 const ZERO_TIME_TEXTS = new Set(['/', 'h'])
 
 // 腔格字母 → 中文标签（用于提示/时间轴 title）
-export const ORN_LABEL = { h: '橄榄/连', s: '滑', d: '断/顿', c: '擞' }
+export const ORN_LABEL = { h: '豁腔', s: '擞腔', d: '叠腔', c: '掇腔' }
 
 /**
  * 获取基字 + 音区对应的 CSS class 后缀（如 "shang-h", "gong-l", "liu"）

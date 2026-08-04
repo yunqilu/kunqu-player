@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "scoreId": "mudanting-xunmeng-lulu",
+  "base": {
+    "path": "src/data/viewerModel.json",
+    "sha256": "93bf8fc6e9c07a3aa5bfa6d3bb91d444c0de606d3257a0341d7cb97adfae18cd"
+  },
+  "profile": "kunqu-default-v1",
+  "sources": [
+    {
+      "id": "source-lulu-gongchepu-647",
+      "title": "《粟庐曲谱》数字文本：牡丹亭·寻梦",
+      "url": "https://gongchepu.net/reader/647/",
+      "kind": "reviewed-score"
+    },
+    {
+      "id": "source-xiqu-annotation-7351eec",
+      "title": "Xiqu-Annotation-System 固定提交中的寻梦标注",
+      "url": "https://github.com/ZhengTong11111/Xiqu-Annotation-System/tree/7351eec7178310420b2e007d43b5e46379fb8e5",
+      "kind": "annotation-source"
+    }
+  ],
+  "corrections": [
+    {
+      "id": "xunmeng-add-yang-six-notes",
+      "op": "replaceCharGongche",
+      "target": { "lineId": "line-35", "charIndex": 13, "expectedChar": "杨" },
+      "raw": ["工3", "六2/", "五46", "六", "工3/", "上+2d"],
+      "status": "confirmed",
+      "evidenceIds": ["source-lulu-gongchepu-647", "source-xiqu-annotation-7351eec"]
+    }
+  ],
+  "sections": [
+    {
+      "id": "xunmeng-liuzi-section",
+      "qupai": { "value": "懒画眉及前段（边界待谱师复核）", "status": "inferred", "ruleId": "xunmeng-section-review-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-1", "charIndex": 0 },
+      "end": { "lineId": "line-43", "charIndex": 4 },
+      "dise": { "value": "liuzi", "status": "confirmed", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "sanban", "status": "inferred", "ruleId": "xunmeng-banshi-review-v1", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-xiaogong-section",
+      "qupai": { "value": "忒忒令及后段（曲牌边界待谱师细分）", "status": "inferred", "ruleId": "xunmeng-section-review-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-44", "charIndex": 0 },
+      "end": { "lineId": "line-91", "charIndex": 12 },
+      "dise": { "value": "xiaogong", "status": "confirmed", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "sanban", "status": "inferred", "ruleId": "xunmeng-banshi-review-v1", "evidenceIds": [] }
+    }
+  ],
+  "textClassifications": [],
+  "textClassificationDefaults": [
+    { "style": "念白式", "kind": "speech", "status": "derived", "ruleId": "viewer-style-speech-v1" },
+    { "kind": "unresolved", "status": "unresolved", "ruleId": "xunmeng-empty-gongche-review-v1" }
+  ],
+  "overrides": []
+}

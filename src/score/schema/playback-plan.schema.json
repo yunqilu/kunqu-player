@@ -1,0 +1,13 @@
+{
+  "$id": "https://kunqu-player.local/schema/playback-plan-v1.json",
+  "type": "object",
+  "required": ["schemaVersion", "scoreId", "canonicalScoreHash", "events"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "scoreId": { "type": "string", "minLength": 1 },
+    "canonicalScoreHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "profile": { "type": ["string", "null"] },
+    "events": { "type": "array" }
+  },
+  "additionalProperties": true
+}

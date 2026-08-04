@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "scoreId": "other-kunqu-score",
+  "profile": "kunqu-default-v1",
+  "sources": [{ "id": "other-edition", "title": "另一昆曲底本", "kind": "reviewed-score" }],
+  "corrections": [],
+  "sections": [{ "id": "other-section", "start": { "lineId": "other-line", "charIndex": 0 }, "end": { "lineId": "other-line", "charIndex": 0 }, "banshi": "sanban" }],
+  "textClassifications": [],
+  "overrides": []
+}
