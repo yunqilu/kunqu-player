@@ -1,15 +1,14 @@
 {
   "$id": "https://kunqu-player.local/schema/reviewed-source-v1.json",
   "type": "object",
-  "required": ["schemaVersion", "scoreId", "baseHash", "sourceHash", "reviewHash", "lines", "sections"],
+  "required": ["schemaVersion", "scoreId", "profile", "baseHash", "sourceHash", "reviewHash", "lines", "sections", "textClassifications", "overrides"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "scoreId": { "type": "string", "minLength": 1 },
-    "baseHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "reviewHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "lines": { "type": "array" },
-    "sections": { "type": "array" }
+    "schemaVersion": { "const": 1 }, "scoreId": { "type": "string", "minLength": 1 }, "profile": { "type": "string", "minLength": 1 },
+    "baseHash": { "$ref": "#/$defs/hash" }, "sourceHash": { "$ref": "#/$defs/hash" }, "reviewHash": { "$ref": "#/$defs/hash" },
+    "meta": { "type": "object" }, "sources": { "type": "array", "items": { "type": "object", "required": ["id", "title", "kind"] } },
+    "lines": { "type": "array", "items": { "type": "object", "required": ["id", "text", "chars"], "properties": { "id": { "type": "string" }, "text": { "type": "string" }, "mediaRef": { "type": "object" }, "chars": { "type": "array", "items": { "type": "object", "required": ["ch", "sourceRef", "gc"], "properties": { "ch": { "type": "string" }, "tone": { "type": ["string", "null"] }, "style": { "type": ["string", "null"] }, "sourceRef": { "$ref": "#/$defs/sourceRef" }, "mediaRef": { "type": "object" }, "gc": { "type": "array", "items": { "type": "object", "required": ["raw", "sourceRef"], "properties": { "raw": { "type": "string" }, "sourceRef": { "$ref": "#/$defs/sourceRef" }, "correctionId": { "type": "string" }, "flattened": { "type": ["object", "null"] }, "mediaRef": { "type": ["object", "null"] } }, "additionalProperties": false } } }, "additionalProperties": false } } }, "additionalProperties": false } },
+    "sections": { "type": "array", "items": { "type": "object", "required": ["id"] } }, "textClassifications": { "type": "array", "items": { "type": "object", "required": ["target", "kind", "status"] } }, "overrides": { "type": "array", "items": { "type": "object", "required": ["id", "targetId", "fieldPath", "status"] } }
   },
-  "additionalProperties": true
+  "$defs": { "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "sourceRef": { "type": "object", "required": ["lineId", "charIndex"], "properties": { "lineId": { "type": "string" }, "charIndex": { "type": "integer", "minimum": 0 }, "gongcheIndex": { "type": "integer", "minimum": 0 } }, "additionalProperties": true } },
+  "additionalProperties": false
 }

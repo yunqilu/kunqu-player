@@ -32,20 +32,72 @@
   ],
   "sections": [
     {
-      "id": "xunmeng-liuzi-section",
-      "qupai": { "value": "懒画眉及前段（边界待谱师复核）", "status": "inferred", "ruleId": "xunmeng-section-review-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "id": "xunmeng-opening-review",
+      "qupai": { "value": "视频引子／念白（曲牌待复核）", "status": "inferred", "ruleId": "xunmeng-section-review-v2", "evidenceIds": [] },
       "start": { "lineId": "line-1", "charIndex": 0 },
-      "end": { "lineId": "line-43", "charIndex": 4 },
-      "dise": { "value": "liuzi", "status": "confirmed", "evidenceIds": ["source-lulu-gongchepu-647"] },
-      "banshi": { "value": "sanban", "status": "inferred", "ruleId": "xunmeng-banshi-review-v1", "evidenceIds": [] }
+      "end": { "lineId": "line-18", "charIndex": 4 },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
     },
     {
-      "id": "xunmeng-xiaogong-section",
-      "qupai": { "value": "忒忒令及后段（曲牌边界待谱师细分）", "status": "inferred", "ruleId": "xunmeng-section-review-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
-      "start": { "lineId": "line-44", "charIndex": 0 },
-      "end": { "lineId": "line-91", "charIndex": 12 },
+      "id": "xunmeng-teteling",
+      "qupai": { "value": "忒忒令", "status": "confirmed", "ruleId": null, "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-19", "charIndex": 0 },
+      "end": { "lineId": "line-43", "charIndex": 4 },
       "dise": { "value": "xiaogong", "status": "confirmed", "evidenceIds": ["source-lulu-gongchepu-647"] },
-      "banshi": { "value": "sanban", "status": "inferred", "ruleId": "xunmeng-banshi-review-v1", "evidenceIds": [] }
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-jiaqingzi",
+      "qupai": { "value": "嘉庆子", "status": "confirmed", "ruleId": null, "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-44", "charIndex": 0 }, "end": { "lineId": "line-49", "charIndex": 7 },
+      "dise": { "value": "xiaogong", "status": "inferred", "ruleId": "inherit-teteling-dise-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-yinling",
+      "qupai": { "value": "尹令", "status": "confirmed", "ruleId": null, "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-50", "charIndex": 0 }, "end": { "lineId": "line-55", "charIndex": 9 },
+      "dise": { "value": "xiaogong", "status": "inferred", "ruleId": "inherit-teteling-dise-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-prose-1",
+      "qupai": { "value": "过场／念白（待复核）", "status": "inferred", "ruleId": "xunmeng-section-review-v2", "evidenceIds": [] },
+      "start": { "lineId": "line-56", "charIndex": 0 }, "end": { "lineId": "line-61", "charIndex": 5 },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-yujiaozhi",
+      "qupai": { "value": "玉交枝", "status": "confirmed", "ruleId": null, "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-62", "charIndex": 0 }, "end": { "lineId": "line-71", "charIndex": 1 },
+      "dise": { "value": "xiaogong", "status": "inferred", "ruleId": "inherit-teteling-dise-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-prose-2",
+      "qupai": { "value": "念白（待复核）", "status": "inferred", "ruleId": "xunmeng-section-review-v2", "evidenceIds": [] },
+      "start": { "lineId": "line-72", "charIndex": 0 }, "end": { "lineId": "line-77", "charIndex": 1 },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-jiangershui",
+      "qupai": { "value": "江儿水", "status": "confirmed", "ruleId": null, "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-78", "charIndex": 0 }, "end": { "lineId": "line-84", "charIndex": 6 },
+      "dise": { "value": "xiaogong", "status": "inferred", "ruleId": "inherit-teteling-dise-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-prose-3",
+      "qupai": { "value": "念白（待复核）", "status": "inferred", "ruleId": "xunmeng-section-review-v2", "evidenceIds": [] },
+      "start": { "lineId": "line-85", "charIndex": 0 }, "end": { "lineId": "line-90", "charIndex": 3 },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
+    },
+    {
+      "id": "xunmeng-weisheng",
+      "qupai": { "value": "尾声", "status": "confirmed", "ruleId": null, "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "start": { "lineId": "line-91", "charIndex": 0 }, "end": { "lineId": "line-91", "charIndex": 12 },
+      "dise": { "value": "xiaogong", "status": "inferred", "ruleId": "inherit-teteling-dise-v1", "evidenceIds": ["source-lulu-gongchepu-647"] },
+      "banshi": { "value": "unknown", "status": "inferred", "ruleId": "xunmeng-banshi-unresolved-v2", "evidenceIds": [] }
     }
   ],
   "textClassifications": [],

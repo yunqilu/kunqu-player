@@ -10,18 +10,19 @@ export function compileReview(projection, manifest, diagnostics) {
   if (manifest.base?.sha256 && manifest.base.sha256 !== baseHash) {
     diagnostics.push(diagnostic('BASE_HASH_MISMATCH', 'fatal', '校订清单与播放投影 hash 不匹配'))
   }
-  const lines = (projection.lines || []).map((line) => ({
+  const lines = (projection.lines || []).map((line, lineIndex) => ({
     id: line.id,
     text: line.text,
     mediaRef: { start: line.s, end: line.e },
     chars: (line.chars || []).map((char, charIndex) => ({
       ch: char.ch,
       style: char.st || null,
-      sourceRef: { lineId: line.id, charIndex },
+      tone: char.tone || null,
+      sourceRef: { lineId: line.id, lineIndex, charIndex },
       mediaRef: { start: char.s, end: char.e },
       gc: (char.gc || []).map((symbol, gongcheIndex) => ({
         raw: symbol.raw,
-        sourceRef: { lineId: line.id, charIndex, gongcheIndex },
+        sourceRef: { lineId: line.id, lineIndex, charIndex, gongcheIndex },
         flattened: { b: symbol.b, r: symbol.r, p: symbol.p, bt: symbol.bt, o: symbol.o, q: symbol.q },
         mediaRef: { start: symbol.s, end: symbol.e },
       })),
@@ -42,7 +43,7 @@ export function compileReview(projection, manifest, diagnostics) {
     char.gc = correction.raw.map((raw, gongcheIndex) => ({
       raw,
       correctionId: correction.id,
-      sourceRef: { lineId: line.id, charIndex: correction.target.charIndex, gongcheIndex },
+      sourceRef: { lineId: line.id, lineIndex: lines.indexOf(line), charIndex: correction.target.charIndex, gongcheIndex },
       flattened: null,
       mediaRef: null,
     }))
@@ -81,11 +82,12 @@ export function compileReview(projection, manifest, diagnostics) {
 
   const semanticSource = {
     scoreId: manifest.scoreId,
+    profile: manifest.profile,
     meta: projection.meta || {},
     lines: lines.map((line) => ({
       id: line.id,
       text: line.text,
-      chars: line.chars.map((char) => ({ ch: char.ch, style: char.style, gc: char.gc.map((item) => item.raw) })),
+      chars: line.chars.map((char) => ({ ch: char.ch, style: char.style, tone: char.tone, gc: char.gc.map((item) => item.raw) })),
     })),
     sections: manifest.sections || [],
     textClassifications,
@@ -93,6 +95,7 @@ export function compileReview(projection, manifest, diagnostics) {
   return {
     schemaVersion: 1,
     scoreId: manifest.scoreId,
+    profile: manifest.profile,
     baseHash,
     sourceHash: sha256(stableStringify(semanticSource)),
     reviewHash: sha256(stableStringify(manifest)),

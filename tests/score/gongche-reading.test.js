@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
 import { convertKunquScore } from '../../src/score/pipeline.js'
+import { projectionHash } from '../../src/score/review/compileReview.js'
 
 function convert(rawTokens, changes = {}) {
   const gc = rawTokens.map((raw, index) => ({
@@ -15,17 +16,19 @@ function convert(rawTokens, changes = {}) {
     e: 101 + index,
     ...changes.symbol,
   }))
-  return convertKunquScore({
-    projection: {
+  const projection = {
       meta: { title: '读谱测试' },
       lines: [{ id: 'line-a', s: 100, e: 200, text: '曲', chars: [{ ch: '曲', s: 100, e: 200, st: '普通唱', gc }] }],
       breaths: [],
       tracks: [],
-    },
+  }
+  return convertKunquScore({
+    projection,
     reviewManifest: {
       schemaVersion: 1,
       scoreId: 'reading-test',
       profile: 'kunqu-default-v1',
+      base: { sha256: projectionHash(projection) },
       sources: [{ id: 'edition', title: '底本', kind: 'reviewed-score' }],
       corrections: [],
       sections: [{ id: 'q1', qupai: '测试曲牌', start: { lineId: 'line-a', charIndex: 0 }, end: { lineId: 'line-a', charIndex: 0 }, banshi: 'sanban' }],

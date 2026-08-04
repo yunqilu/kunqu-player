@@ -1,13 +1,10 @@
 {
   "$id": "https://kunqu-player.local/schema/playback-plan-v1.json",
   "type": "object",
-  "required": ["schemaVersion", "scoreId", "canonicalScoreHash", "events"],
+  "required": ["schemaVersion", "scoreId", "canonicalScoreHash", "profile", "sourceImplementation", "tempoMap", "synthesis", "events"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "scoreId": { "type": "string", "minLength": 1 },
-    "canonicalScoreHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "profile": { "type": ["string", "null"] },
-    "events": { "type": "array" }
+    "schemaVersion": { "const": 1 }, "scoreId": { "type": "string", "minLength": 1 }, "canonicalScoreHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "profile": { "type": ["string", "null"] }, "sourceImplementation": { "type": ["object", "null"] }, "tempoMap": { "type": ["object", "null"] }, "synthesis": { "type": ["object", "null"] },
+    "events": { "type": "array", "items": { "type": "object", "required": ["id", "sourceEventIds", "ruleId", "profileId", "profileVersion", "sourceImplementationSha256", "inputHash", "evidenceStatus", "kind", "beatOnset", "beatDuration", "parameters", "scoreMarker"], "properties": { "id": { "type": "string", "minLength": 1 }, "sourceEventIds": { "type": "array", "items": { "type": "string" }, "minItems": 1 }, "ruleId": { "type": "string", "minLength": 1 }, "profileId": { "type": "string", "minLength": 1 }, "profileVersion": { "type": "integer", "minimum": 1 }, "sourceImplementationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "inputHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "evidenceStatus": { "const": "inferred" }, "kind": { "type": "string", "minLength": 1 }, "beatOnset": { "type": "object", "required": ["numerator", "denominator"] }, "beatDuration": { "type": "object", "required": ["numerator", "denominator"] }, "parameters": { "type": "object" }, "scoreMarker": { "type": "object", "required": ["id", "text", "colorRole", "sectionId", "measureIndex", "beatOffset"], "properties": { "beatOffset": { "type": "object", "required": ["numerator", "denominator"] } }, "additionalProperties": true } }, "additionalProperties": false } }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

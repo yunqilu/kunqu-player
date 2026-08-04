@@ -4,6 +4,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { validateArtifact, validateMusicXml } from '../src/score/schema/validate.js'
+import { validateMusicXmlWithXsd } from '../src/score/schema/validateMusicXmlNode.js'
 
 const directories = process.argv.slice(2).filter((arg) => !arg.startsWith('--'))
 if (directories.length === 0) {
@@ -25,6 +26,8 @@ if (directories.length === 0) {
       const xml = await readFile(path.join(directory, 'score.musicxml'), 'utf8')
       const xmlValidation = validateMusicXml(xml)
       if (!xmlValidation.valid) throw new Error(`${directory}/score.musicxml: ${xmlValidation.errors.join('; ')}`)
+      const xsdValidation = validateMusicXmlWithXsd(xml)
+      if (xsdValidation.valid === false) throw new Error(`${directory}/score.musicxml XSD: ${xsdValidation.errors.join('; ')}`)
       process.stdout.write(`${directory}: valid\n`)
     }
   } catch (error) {

@@ -3,11 +3,10 @@
   "type": "object",
   "required": ["schemaVersion", "scoreId", "profile", "sections", "diagnostics"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "scoreId": { "type": "string", "minLength": 1 },
-    "profile": { "type": "string", "minLength": 1 },
-    "sections": { "type": "array" },
-    "diagnostics": { "type": "array" }
+    "schemaVersion": { "const": 1 }, "scoreId": { "type": "string", "minLength": 1 }, "profile": { "type": "string", "minLength": 1 }, "meta": { "type": "object" }, "sources": { "type": "array" },
+    "sections": { "type": "array", "items": { "type": "object", "required": ["id", "tuning", "meter", "measures", "events"], "properties": { "id": { "type": "string" }, "tuning": { "$ref": "#/$defs/evidence" }, "meter": { "$ref": "#/$defs/evidence" }, "measures": { "type": "array", "items": { "type": "object", "required": ["number", "duration", "durationEvidence"], "properties": { "durationEvidence": { "$ref": "#/$defs/evidence" } }, "additionalProperties": true } }, "events": { "type": "array", "items": { "type": "object", "required": ["id", "kind", "sourceEventIds", "onset", "duration", "measureIndex"], "properties": { "id": { "type": "string", "minLength": 1 }, "kind": { "enum": ["note", "rest"] }, "sourceEventIds": { "type": "array", "items": { "type": "string" } }, "onset": { "$ref": "#/$defs/evidence" }, "duration": { "$ref": "#/$defs/evidence" }, "lyricEvidence": { "anyOf": [{ "$ref": "#/$defs/evidence" }, { "type": "null" }] }, "restEvidence": { "$ref": "#/$defs/evidence" }, "measureIndex": { "type": "integer", "minimum": 0 } }, "allOf": [{ "if": { "properties": { "kind": { "const": "note" } } }, "then": { "required": ["lyricEvidence"] } }, { "if": { "properties": { "kind": { "const": "rest" } } }, "then": { "required": ["restEvidence"] } }], "additionalProperties": true } }, "textEvents": { "type": "array" } }, "additionalProperties": true } },
+    "diagnostics": { "type": "array", "items": { "type": "object", "required": ["code", "severity", "message"] } }
   },
-  "additionalProperties": true
+  "$defs": { "evidence": { "type": "object", "required": ["value", "status", "ruleId", "evidenceIds", "note"], "properties": { "status": { "enum": ["confirmed", "derived", "inferred", "unresolved"] }, "evidenceIds": { "type": "array" } }, "additionalProperties": true } },
+  "additionalProperties": false
 }

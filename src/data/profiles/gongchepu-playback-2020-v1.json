@@ -12,6 +12,9 @@
     "phraseEnding": { "enabled": true, "extension": { "numerator": 1, "denominator": 2 }, "tailRest": { "numerator": 1, "denominator": 4 } },
     "sanbanTiming": { "enabled": true, "single": 0.9, "two": [0.4, 0.5], "fallback": 0.4, "last": 0.5 },
     "unmarkedTemplates": { "enabled": true },
+    "hanqiangTemplates": { "enabled": true, "relativeValues": [[0, -3, 0, 2], [-5, -8, -5, -3], [7, 4, 7, 9], [0, -3, 0, 4, 2]] },
+    "rushengTemplates": { "enabled": true },
+    "explicitQiangge": { "enabled": true },
     "slides": { "enabled": true, "maximumSemitones": 6 },
     "vibrato": { "enabled": true, "minimumBeats": 0.8, "frequencyHz": 5 },
     "synthesis": { "enabled": true, "waveform": "periodic-flute", "attack": 0.03, "release": 0.08 }

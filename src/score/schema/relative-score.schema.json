@@ -1,14 +1,13 @@
 {
   "$id": "https://kunqu-player.local/schema/relative-score-v1.json",
   "type": "object",
-  "required": ["schemaVersion", "scoreId", "sourceHash", "sections", "diagnostics", "provenanceIndex"],
+  "required": ["schemaVersion", "scoreId", "sourceHash", "profileVersions", "sections", "diagnostics", "provenanceIndex"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "scoreId": { "type": "string", "minLength": 1 },
-    "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "sections": { "type": "array" },
-    "diagnostics": { "type": "array" },
-    "provenanceIndex": { "type": "object" }
+    "schemaVersion": { "const": 1 }, "scoreId": { "type": "string", "minLength": 1 }, "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "meta": { "type": "object" }, "sources": { "type": "array" }, "profileVersions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+    "sections": { "type": "array", "items": { "type": "object", "required": ["id", "events", "textEvents"], "properties": { "id": { "type": "string" }, "events": { "type": "array", "items": { "$ref": "#/$defs/event" } }, "textEvents": { "type": "array", "items": { "type": "object", "required": ["id", "kind", "text", "sourceRef"] } } }, "additionalProperties": true } },
+    "diagnostics": { "type": "array", "items": { "type": "object", "required": ["code", "severity", "message"] } }, "provenanceIndex": { "type": "object", "additionalProperties": { "type": "object" } }
   },
-  "additionalProperties": true
+  "$defs": { "event": { "type": "object", "required": ["id", "kind", "sourceRef", "sourceEventIds", "relativePitch", "lyricEvidence"], "properties": { "id": { "type": "string", "minLength": 1 }, "kind": { "const": "note" }, "sourceRef": { "type": "object", "required": ["lineId", "charIndex", "gongcheIndex"] }, "sourceEventIds": { "type": "array", "items": { "type": "string" }, "minItems": 1 }, "relativePitch": { "$ref": "#/$defs/evidence" }, "lyricEvidence": { "$ref": "#/$defs/evidence" } }, "additionalProperties": true }, "evidence": { "type": "object", "required": ["value", "status", "ruleId", "evidenceIds", "note"], "properties": { "status": { "enum": ["confirmed", "derived", "inferred", "unresolved"] }, "evidenceIds": { "type": "array" } }, "additionalProperties": true } },
+  "additionalProperties": false
 }

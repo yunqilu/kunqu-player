@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'vitest'
 
 import { validateArtifact, validateMusicXml } from '../../src/score/schema/validate.js'
+import { validateMusicXmlWithXsd } from '../../src/score/schema/validateMusicXmlNode.js'
 import { convertKunquScore } from '../../src/score/pipeline.js'
+import { projectionHash } from '../../src/score/review/compileReview.js'
 
 const projection = {
   meta: { title: 'Schema' },
@@ -9,6 +11,7 @@ const projection = {
 }
 const manifest = {
   schemaVersion: 1, scoreId: 'schema-test', profile: 'kunqu-default-v1',
+  base: { sha256: projectionHash(projection) },
   sources: [{ id: 's', title: '底本', kind: 'reviewed-score' }],
   corrections: [], sections: [], textClassifications: [], overrides: [],
 }
@@ -22,6 +25,8 @@ describe('artifact contracts', () => {
     expect(validateArtifact('canonicalScore', result.canonicalScore).valid).toBe(true)
     expect(validateArtifact('playbackPlan', result.playbackPlan).valid).toBe(true)
     expect(validateMusicXml(result.musicXml).valid).toBe(true)
+    const xsd = validateMusicXmlWithXsd(result.musicXml)
+    expect(xsd.valid === null || xsd.valid).toBe(true)
   })
 
   test('rejects a confirmed evidence value without evidence or an editorial note', () => {
@@ -30,5 +35,12 @@ describe('artifact contracts', () => {
       value: { shangPitch: 'D4' }, status: 'confirmed', ruleId: null, evidenceIds: [], note: null,
     }
     expect(validateArtifact('canonicalScore', result.canonicalScore)).toMatchObject({ valid: false })
+  })
+
+  test('rejects malformed correction targets before compilation', () => {
+    const malformed = structuredClone(manifest)
+    malformed.corrections.push({ id: 'bad', op: 'replaceCharGongche', target: { lineId: 'l' }, raw: [], status: 'confirmed', evidenceIds: [] })
+
+    expect(validateArtifact('reviewManifest', malformed).valid).toBe(false)
   })
 })

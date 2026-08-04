@@ -106,12 +106,15 @@ export function parseReviewedSource(reviewedSource, diagnostics) {
             const id = stableId('evt', reviewedSource.scoreId, line.id, char.sourceRef.charIndex, symbol.correctionId || 'source', symbol.sourceRef.gongcheIndex, parserLocalIndex)
             currentEvent = {
               id,
+              sourceEventIds: [id],
               kind: 'note',
               sourceRef: sourceRef(symbol, start, cursor),
               gongcheRaw: raw,
               base: token,
               register,
               lyric: lyricUsed ? { text: char.ch, role: 'extension' } : { text: char.ch, role: 'main' },
+              lyricEvidence: evidence(lyricUsed ? { text: char.ch, role: 'extension' } : { text: char.ch, role: 'main' }, 'derived', 'gongche-lyric-attachment-v1'),
+              lyricTone: char.tone || null,
               relativePitch: evidence(relative, 'derived', 'gongche-base-register-v1'),
               absolutePitch: null,
               sideNote: sideDepth > 0,
@@ -170,6 +173,12 @@ export function parseReviewedSource(reviewedSource, diagnostics) {
     textEvents: textEvents.filter((event) => isAtOrAfter(event.sourceRef, section.start, lineOrder) && isAtOrBefore(event.sourceRef, section.end, lineOrder)),
   }))
   const assigned = new Set(sections.flatMap((section) => section.events.map((event) => event.id)))
+  const assignmentCounts = new Map()
+  for (const section of sections) for (const event of section.events) assignmentCounts.set(event.id, (assignmentCounts.get(event.id) || 0) + 1)
+  const overlaps = [...assignmentCounts].filter(([, count]) => count > 1).map(([id]) => id)
+  if (overlaps.length > 0) {
+    diagnostics.push(diagnostic('SECTION_GAP_OR_OVERLAP', 'fatal', '曲牌区段相互重叠，同一谱面事件被重复分配', { eventIds: overlaps }))
+  }
   if (assigned.size < events.length) {
     diagnostics.push(diagnostic('SECTION_GAP_OR_OVERLAP', 'error', '部分谱面事件未落入任何曲牌区段'))
     sections.push({ id: 'section-unassigned', qupai: null, events: events.filter((event) => !assigned.has(event.id)) })
@@ -179,9 +188,14 @@ export function parseReviewedSource(reviewedSource, diagnostics) {
     schemaVersion: 1,
     scoreId: reviewedSource.scoreId,
     sourceHash: reviewedSource.sourceHash,
-    profileVersions: ['kunqu-default-v1'],
+    meta: structuredClone(reviewedSource.meta),
+    sources: structuredClone(reviewedSource.sources),
+    profileVersions: [reviewedSource.profile],
     sections,
     diagnostics,
-    provenanceIndex: Object.fromEntries(events.map((event) => [event.id, event.sourceRef])),
+    provenanceIndex: Object.fromEntries([...events, ...textEvents].map((event) => [event.id, {
+      sourceRef: event.sourceRef,
+      fields: event.relativePitch ? { relativePitch: event.relativePitch } : { text: { status: event.evidenceStatus, ruleId: event.ruleId } },
+    }])),
   }
 }

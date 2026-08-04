@@ -14,6 +14,7 @@
     "yizi": 69
   },
   "banshiMeters": {
+    "unknown": { "senzaMisura": true, "unresolvedMeter": true },
     "liushui": { "beats": 1, "beatType": 4 },
     "one-ban-one-yan": { "beats": 2, "beatType": 4 },
     "one-ban-three-yan": { "beats": 4, "beatType": 4 },
@@ -21,6 +22,7 @@
     "sanban": { "senzaMisura": true }
   },
   "anchorPositions": {
+    "unknown": {},
     "liushui": { "1": 0, "2": 0, "3": 0, "5": 0, "6": 0.5, "7": 0.5 },
     "one-ban-one-yan": { "1": 0, "2": 1, "3": 1, "5": 1, "6": 0.5, "7": 1.5 },
     "one-ban-three-yan": { "1": 0, "2": 3, "3": 2, "5": 3, "6": 0.5, "7": 2.5 },

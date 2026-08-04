@@ -17,6 +17,11 @@ function fieldValue(field) {
   return field && typeof field === 'object' && 'value' in field ? field.value : field
 }
 
+function midiToPitchName(midi) {
+  const names = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
+  return `${names[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`
+}
+
 export function resolveTuning(section, profile, diagnostics) {
   const explicitPitch = fieldValue(section.shangPitch)
   const dise = fieldValue(section.dise)
@@ -40,7 +45,7 @@ export function resolveTuning(section, profile, diagnostics) {
   return {
     context: evidence({
       dise: dise || null,
-      shangPitch: explicitPitch || 'D4',
+      shangPitch: explicitPitch || midiToPitchName(shangMidi),
       shangMidi,
       temperament: fieldValue(section.temperament) || profile.temperament,
       referenceHz: fieldValue(section.referenceHz) || profile.referenceHz,

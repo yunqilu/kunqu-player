@@ -1,17 +1,27 @@
 {
   "$id": "https://kunqu-player.local/schema/review-manifest-v1.json",
   "type": "object",
-  "required": ["schemaVersion", "scoreId", "profile", "sources", "corrections", "sections", "textClassifications", "overrides"],
+  "required": ["schemaVersion", "scoreId", "profile", "base", "sources", "corrections", "sections", "textClassifications", "overrides"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "scoreId": { "type": "string", "minLength": 1 },
     "profile": { "type": "string", "minLength": 1 },
-    "base": { "type": "object", "properties": { "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }, "additionalProperties": true },
-    "sources": { "type": "array", "items": { "type": "object", "required": ["id", "title", "kind"] } },
-    "corrections": { "type": "array" },
-    "sections": { "type": "array" },
-    "textClassifications": { "type": "array" },
-    "overrides": { "type": "array" }
+    "base": { "type": "object", "required": ["sha256"], "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }, "additionalProperties": false },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" }, "minItems": 1 },
+    "corrections": { "type": "array", "items": { "$ref": "#/$defs/correction" } },
+    "sections": { "type": "array", "items": { "$ref": "#/$defs/section" } },
+    "textClassifications": { "type": "array", "items": { "$ref": "#/$defs/classification" } },
+    "textClassificationDefaults": { "type": "array", "items": { "type": "object", "required": ["kind", "status", "ruleId"], "properties": { "style": { "type": "string" }, "kind": { "enum": ["speech", "melisma", "omission", "unresolved"] }, "status": { "$ref": "#/$defs/status" }, "ruleId": { "type": "string", "minLength": 1 } }, "additionalProperties": false } },
+    "overrides": { "type": "array", "items": { "$ref": "#/$defs/override" } }
   },
-  "additionalProperties": true
+  "$defs": {
+    "status": { "enum": ["confirmed", "derived", "inferred", "unresolved"] },
+    "sourceRef": { "type": "object", "required": ["lineId", "charIndex"], "properties": { "lineId": { "type": "string", "minLength": 1 }, "charIndex": { "type": "integer", "minimum": 0 }, "gongcheIndex": { "type": "integer", "minimum": 0 } }, "additionalProperties": false },
+    "source": { "type": "object", "required": ["id", "title", "kind"], "properties": { "id": { "type": "string", "minLength": 1 }, "title": { "type": "string", "minLength": 1 }, "kind": { "type": "string", "minLength": 1 }, "url": { "type": "string" } }, "additionalProperties": false },
+    "correction": { "type": "object", "required": ["id", "op", "target", "raw", "status", "evidenceIds"], "properties": { "id": { "type": "string", "minLength": 1 }, "op": { "const": "replaceCharGongche" }, "target": { "type": "object", "required": ["lineId", "charIndex", "expectedChar"], "properties": { "lineId": { "type": "string", "minLength": 1 }, "charIndex": { "type": "integer", "minimum": 0 }, "expectedChar": { "type": "string", "minLength": 1, "maxLength": 2 } }, "additionalProperties": false }, "raw": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }, "status": { "const": "confirmed" }, "evidenceIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 } }, "additionalProperties": false },
+    "section": { "type": "object", "required": ["id", "start", "end"], "properties": { "id": { "type": "string", "minLength": 1 }, "qupai": {}, "start": { "$ref": "#/$defs/sourceRef" }, "end": { "$ref": "#/$defs/sourceRef" }, "dise": {}, "shangPitch": {}, "temperament": {}, "referenceHz": {}, "banshi": {}, "metricGaps": { "type": "array", "items": { "type": "object" } }, "phrases": { "type": "array", "items": { "type": "object", "required": ["status", "start", "end"], "properties": { "status": { "const": "confirmed" }, "start": { "$ref": "#/$defs/sourceRef" }, "end": { "$ref": "#/$defs/sourceRef" }, "evidenceIds": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false } }, "phraseBoundaries": { "type": "array", "items": { "type": "object", "required": ["status", "after"], "properties": { "status": { "const": "confirmed" }, "after": { "$ref": "#/$defs/sourceRef" }, "evidenceIds": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false } } }, "additionalProperties": false },
+    "classification": { "type": "object", "required": ["target", "kind", "status"], "properties": { "target": { "type": "object", "required": ["lineId", "charIndex"], "properties": { "lineId": { "type": "string", "minLength": 1 }, "charIndex": { "type": "integer", "minimum": 0 }, "expectedChar": { "type": "string", "minLength": 1 } }, "additionalProperties": false }, "kind": { "enum": ["speech", "melisma", "omission", "unresolved"] }, "status": { "$ref": "#/$defs/status" }, "ruleId": { "type": ["string", "null"] }, "evidenceIds": { "type": "array", "items": { "type": "string" } }, "note": { "type": "string" } }, "additionalProperties": false },
+    "override": { "type": "object", "required": ["id", "targetId", "fieldPath", "value", "status"], "properties": { "id": { "type": "string", "minLength": 1 }, "targetId": { "type": "string", "minLength": 1 }, "fieldPath": { "enum": ["relativePitch", "absolutePitch", "onset", "duration", "banshi", "dise", "shangPitch", "temperament", "referenceHz"] }, "value": {}, "status": { "const": "confirmed" }, "evidenceIds": { "type": "array", "items": { "type": "string" } }, "note": { "type": "string" } }, "additionalProperties": false }
+  },
+  "additionalProperties": false
 }

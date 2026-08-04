@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <system systemId="http://www.musicxml.org/xsd/musicxml.xsd" uri="musicxml.xsd"/>
+  <system systemId="http://www.musicxml.org/xsd/xlink.xsd" uri="xlink.xsd"/>
+  <system systemId="http://www.musicxml.org/xsd/xml.xsd" uri="xml.xsd"/>
+</catalog>

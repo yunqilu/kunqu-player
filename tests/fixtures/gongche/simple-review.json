@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "scoreId": "other-kunqu-score",
   "profile": "kunqu-default-v1",
+  "base": { "path": "tests/fixtures/gongche/simple-viewer.json", "sha256": "af8827da94aa3b4678652d93d9c234aab0a6fb199cefa264290d51c23da02e3e" },
   "sources": [{ "id": "other-edition", "title": "另一昆曲底本", "kind": "reviewed-score" }],
   "corrections": [],
   "sections": [{ "id": "other-section", "start": { "lineId": "other-line", "charIndex": 0 }, "end": { "lineId": "other-line", "charIndex": 0 }, "banshi": "sanban" }],

@@ -1,19 +1,65 @@
 import { diagnostic } from '../diagnostics.js'
 import { evidence } from '../evidence.js'
 import { stableId } from '../ids.js'
+import { fromNumber, valueOf as numberOf } from '../rational.js'
 
-function fraction(numerator, denominator) {
-  return { numerator, denominator }
+function sameSourceRef(left, right) {
+  return left?.lineId === right?.lineId && left?.charIndex === right?.charIndex &&
+    (right?.gongcheIndex == null || left?.gongcheIndex === right.gongcheIndex)
 }
 
-function numberOf(field) {
-  return field.value.numerator / field.value.denominator
+function hasConfirmedPhraseBoundary(section, event) {
+  return (section.phraseBoundaries || []).some((boundary) => {
+    if ((boundary.status || 'confirmed') !== 'confirmed') return false
+    return boundary.afterEventId === event.id || sameSourceRef(event.sourceRef, boundary.after || boundary.sourceRef)
+  })
 }
 
-function fromNumber(value) {
-  const quarters = Math.round(value * 4)
-  const divisor = quarters % 4 === 0 ? 4 : quarters % 2 === 0 ? 2 : 1
-  return { numerator: quarters / divisor, denominator: 4 / divisor }
+function sourcePosition(ref, lineOrder = null) {
+  const line = ref.lineIndex ?? lineOrder?.get(ref.lineId) ?? Number(String(ref.lineId).match(/\d+/)?.[0] || 0)
+  return [line, ref.charIndex ?? 0, ref.gongcheIndex ?? 0, ref.rawStart ?? 0]
+}
+
+function compareSource(left, right, lineOrder) {
+  const a = sourcePosition(left, lineOrder)
+  const b = sourcePosition(right, lineOrder)
+  for (let index = 0; index < a.length; index += 1) if (a[index] !== b[index]) return a[index] - b[index]
+  return 0
+}
+
+function isSameConfirmedPhrase(section, event, trailing) {
+  if (event.sourceRef.lineId === trailing.sourceRef.lineId && event.sourceRef.charIndex === trailing.sourceRef.charIndex) return true
+  return (section.phrases || []).some((phrase) => (phrase.status || 'confirmed') === 'confirmed' &&
+    compareSource(event.sourceRef, phrase.start) >= 0 && compareSource(trailing.sourceRef, phrase.end) <= 0)
+}
+
+function preserveDisplacedLyric(section, pitchedEvents, event, trailing, displacedLyric, diagnostics) {
+  const replacement = pitchedEvents.slice(pitchedEvents.indexOf(trailing) + 1).find((candidate) =>
+    candidate.sourceRef.lineId === trailing.sourceRef.lineId &&
+    candidate.sourceRef.charIndex === trailing.sourceRef.charIndex &&
+    candidate.realizationRole !== 'carry')
+  if (replacement) {
+    replacement.lyric = displacedLyric
+    replacement.lyricEvidence = evidence(displacedLyric, 'derived', 'duoqiang-lyric-reassignment-v1')
+    return
+  }
+  const id = stableId('text', trailing.id, 'lyric-collision')
+  section.textEvents ||= []
+  section.textEvents.push({
+    id,
+    kind: 'text',
+    text: displacedLyric?.text || '',
+    classification: 'lyric-collision',
+    evidenceStatus: 'inferred',
+    ruleId: 'duoqiang-lyric-collision-v1',
+    sourceRef: trailing.sourceRef,
+    sourceEventIds: [event.id, trailing.id],
+    colorRole: 'inferred',
+  })
+  diagnostics.push(diagnostic('DUOQIANG_LYRIC_COLLISION', 'error', '掇腔带音占用了后一唱词且该字没有剩余主音', {
+    sourceRef: trailing.sourceRef,
+    eventIds: [event.id, trailing.id, id],
+  }))
 }
 
 export function realizeQiangge(section, pitchedEvents, diagnostics) {
@@ -21,6 +67,15 @@ export function realizeQiangge(section, pitchedEvents, diagnostics) {
   for (let index = 0; index < pitchedEvents.length; index += 1) {
     const event = pitchedEvents[index]
     realized.push(event)
+
+    const structuralCodes = event.qiangge.filter((item) => item.code === 'd' || item.code === 'c')
+    if (new Set(structuralCodes.map((item) => item.code)).size > 1) {
+      event.realizationStatus = 'unresolved'
+      diagnostics.push(diagnostic('QIANGGE_ORDER_UNRESOLVED', 'error', `混合腔格码 ${structuralCodes.map((item) => item.code).join('')} 尚无审定组合展开，已保留原始顺序与绿色名称`, {
+        sourceRef: structuralCodes[0].sourceRef, eventIds: [event.id],
+      }))
+      continue
+    }
 
     const dieCodes = event.qiangge.filter((item) => item.code === 'd')
     dieCodes.forEach((code, repeatIndex) => {
@@ -31,6 +86,7 @@ export function realizeQiangge(section, pitchedEvents, diagnostics) {
         sourceEventIds: [event.id],
         sourceRef: code.sourceRef,
         lyric: { text: event.lyric?.text || '', role: 'extension' },
+        lyricEvidence: evidence({ text: event.lyric?.text || '', role: 'extension' }, 'derived', 'dieqiang-lyric-extension-v1'),
         qiangge: [],
         anchors: [],
         breathAfter: false,
@@ -48,7 +104,10 @@ export function realizeQiangge(section, pitchedEvents, diagnostics) {
       }))
     }
     if (duoCodes.length === 0) continue
-    const trailing = pitchedEvents[index + 1]
+    const candidate = pitchedEvents[index + 1]
+    const trailing = candidate && !hasConfirmedPhraseBoundary(section, event) && isSameConfirmedPhrase(section, event, candidate)
+      ? candidate
+      : null
     const realizationId = stableId('real', event.id, 'duo')
     event.realizationId = realizationId
     event.realizationRole = 'stop'
@@ -68,15 +127,8 @@ export function realizeQiangge(section, pitchedEvents, diagnostics) {
     if (trailing.sourceRef.lineId !== event.sourceRef.lineId || trailing.sourceRef.charIndex !== event.sourceRef.charIndex) {
       const displacedLyric = trailing.lyric
       trailing.lyric = { text: event.lyric?.text || '', role: 'extension' }
-      const replacement = pitchedEvents.slice(index + 2).find((candidate) =>
-        candidate.sourceRef.lineId === trailing.sourceRef.lineId &&
-        candidate.sourceRef.charIndex === trailing.sourceRef.charIndex &&
-        candidate.realizationRole !== 'carry')
-      if (replacement) replacement.lyric = displacedLyric
-      else diagnostics.push(diagnostic('DUOQIANG_LYRIC_COLLISION', 'error', '掇腔带音占用了后一唱词且该字没有剩余主音', {
-        sourceRef: trailing.sourceRef,
-        eventIds: [event.id, trailing.id],
-      }))
+      trailing.lyricEvidence = evidence({ text: event.lyric?.text || '', role: 'extension' }, 'derived', 'duoqiang-lyric-extension-v1')
+      preserveDisplacedLyric(section, pitchedEvents, event, trailing, displacedLyric, diagnostics)
     }
     realized.push({
       id: stableId('rest', realizationId),
@@ -84,6 +136,7 @@ export function realizeQiangge(section, pitchedEvents, diagnostics) {
       sourceEventIds: [event.id, trailing.id],
       sourceRef: duoCodes[0].sourceRef,
       restOrigin: 'qiangge',
+      restEvidence: evidence({ origin: 'qiangge', realizationId }, 'derived', 'duoqiang-stop-rest-carry-v1'),
       relativePitch: null,
       absolutePitch: null,
       lyric: null,
@@ -156,7 +209,11 @@ export function applyQianggeTiming(section, rhythm, diagnostics) {
       event.measureIndex = 0
       cursor += numberOf(event.duration)
     }
-    rhythm.measures = [{ number: 1, duration: fromNumber(cursor), senzaMisura: true }]
+    const duration = fromNumber(cursor)
+    rhythm.measures = [{
+      number: 1, duration, senzaMisura: true,
+      durationEvidence: evidence(duration, 'inferred', 'sanban-engraving-duration-v1'),
+    }]
   }
   return rhythm
 }

@@ -7,6 +7,7 @@ import playbackProfileDefault from '../src/data/profiles/gongchepu-playback-2020
 import { stableStringify } from '../src/score/ids.js'
 import { convertKunquScore } from '../src/score/pipeline.js'
 import { validateArtifact, validateMusicXml } from '../src/score/schema/validate.js'
+import { validateMusicXmlWithXsd } from '../src/score/schema/validateMusicXmlNode.js'
 
 function parseArgs(argv) {
   const args = { jobs: [] }
@@ -19,7 +20,7 @@ function parseArgs(argv) {
   if (args.batch) return { ...args, mode: 'batch-file' }
   if (args.jobs.length > 0) return { ...args, mode: 'jobs' }
   if (args.viewer && args.review && args.out) return { ...args, mode: 'single' }
-  throw new Error('Usage: score-convert --viewer VIEWER --review REVIEW --out DIR | --job VIEWER::REVIEW::DIR | --batch JOBS.json')
+  throw new Error('Usage: score-convert --viewer VIEWER --review REVIEW --out DIR [--conversion-profile PROFILE] | --job VIEWER::REVIEW::DIR[::PLAYBACK::CONVERSION] | --batch JOBS.json')
 }
 
 async function loadJson(filename) {
@@ -27,11 +28,11 @@ async function loadJson(filename) {
 }
 
 async function resolveJobs(args) {
-  if (args.mode === 'single') return [{ viewer: args.viewer, review: args.review, out: args.out, playback: args.playback }]
+  if (args.mode === 'single') return [{ viewer: args.viewer, review: args.review, out: args.out, playback: args.playback, conversionProfile: args['conversion-profile'] }]
   if (args.mode === 'jobs') return args.jobs.map((job) => {
-    const [viewer, review, out, playback] = job.split('::')
+    const [viewer, review, out, playback, conversionProfile] = job.split('::')
     if (!viewer || !review || !out) throw new Error(`Invalid --job: ${job}`)
-    return { viewer, review, out, playback }
+    return { viewer, review, out, playback, conversionProfile }
   })
   const jobs = await loadJson(args.batch)
   if (!Array.isArray(jobs)) throw new Error('Batch file must contain an array of jobs')
@@ -48,7 +49,9 @@ async function convertJob(job, args) {
   const manifestValidation = validateArtifact('reviewManifest', reviewManifest)
   if (!manifestValidation.valid) throw new Error(`Invalid review manifest: ${manifestValidation.errors.join('; ')}`)
   const playbackProfile = args.noPlayback ? null : job.playback ? await loadJson(job.playback) : playbackProfileDefault
-  const result = convertKunquScore({ projection, reviewManifest, playbackProfile })
+  const conversionProfilePath = job.conversionProfile || args['conversion-profile']
+  const conversionProfile = conversionProfilePath ? await loadJson(conversionProfilePath) : null
+  const result = convertKunquScore({ projection, reviewManifest, conversionProfile, playbackProfile })
   const fatal = result.diagnostics.filter((item) => item.severity === 'fatal')
   if (fatal.length > 0) throw new Error(`Fatal conversion diagnostics: ${fatal.map((item) => item.code).join(', ')}`)
   const validations = [
@@ -59,7 +62,8 @@ async function convertJob(job, args) {
   ].map(([kind, value]) => [kind, validateArtifact(kind, value)])
   const invalid = validations.filter(([, validation]) => !validation.valid)
   const xmlValidation = validateMusicXml(result.musicXml)
-  if (invalid.length > 0 || !xmlValidation.valid) {
+  const xsdValidation = validateMusicXmlWithXsd(result.musicXml)
+  if (invalid.length > 0 || !xmlValidation.valid || xsdValidation.valid === false) {
     throw new Error(`Generated artifact validation failed: ${invalid.map(([kind]) => kind).concat(xmlValidation.valid ? [] : ['musicXml']).join(', ')}`)
   }
   await mkdir(job.out, { recursive: true })
