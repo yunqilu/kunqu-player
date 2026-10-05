@@ -16,6 +16,10 @@ export default {
   'video.failed': '这个视频无法播放。请换一个直链或本地文件。',
   'video.virtual': '未载入时仍可按 ▶ / 空格 用「虚拟时间轴」预览同步',
 
+  'header.subtitles': '英文字幕',
+  'subtitle.draft': '初稿',
+  'subtitle.draftTip': '翻译初稿，尚未审阅',
+
   'review.drawer': '五线谱审阅',
 
   'left.outlineTitle': '曲牌 · 分句 · 点击跳转',

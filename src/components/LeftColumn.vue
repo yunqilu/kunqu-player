@@ -15,7 +15,7 @@ const countText = (g) =>
   t(g.count === 1 ? 'left.phraseOne' : 'left.phraseMany', { n: g.count }) +
   (g.inferred ? t('left.inferredCount', { n: g.inferred }) : '')
 const itemTitle = (x) =>
-  [`${fmt(x.s)} ${x.text}`, t(`status.${x.status}`), x.tip].filter(Boolean).join('\n')
+  [`${fmt(x.s)} ${x.text}`, x.en, t(`status.${x.status}`), x.tip].filter(Boolean).join('\n')
 
 const fmt = (s) => { s = Math.max(0, s || 0); const m = (s / 60) | 0, x = (s % 60) | 0; return `${m}:${String(x).padStart(2, '0')}` }
 

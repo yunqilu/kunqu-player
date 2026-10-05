@@ -76,6 +76,7 @@ describe('LeftColumn in English', () => {
     expect(item('但觉思情辗转').attributes('title')).toContain('Variant wording')
     expect(item('少不得楼上花枝').attributes('title')).toContain('Inferred phrase break. Evidence:\nMeaning: a complete clause')
     expect(item('一径行来').attributes('title')).toContain('From lyrics')
+    expect(item('一径行来').attributes('title')).toBe('0:10 一径行来\nI have walked the whole path here,\nFrom lyrics')
 
     i18n.setLang('zh', null)
     await nextTick()

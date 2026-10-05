@@ -27,7 +27,7 @@ export function buildOutline(model) {
       const index = indexOf.get(id)
       if (index === undefined) throw new Error(`段落 ${sec.key} 引用了不存在的分句 ${id}`)
       const line = model.lines[index]
-      return { index, id, s: line.s, text: line.text, status: line.status, tip: tipOf(line) }
+      return { index, id, s: line.s, text: line.text, en: line.en ?? '', status: line.status, tip: tipOf(line) }
     })
     return {
       key: sec.key,

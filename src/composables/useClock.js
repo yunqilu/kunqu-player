@@ -1,5 +1,6 @@
 import { ref, shallowRef } from 'vue'
 import { model, bisectLine, activeCharIdx, activeAttrs, attrsKey, breathAt } from '../lib/model'
+import { subtitleIndex } from '../lib/subtitle'
 
 // ── 单一时钟源（整个应用共享一个实例）───────────────────────────────────────
 // 性能纪律：
@@ -12,6 +13,8 @@ function createClock() {
 
   // —— 响应式：仅离散状态，change-guarded ——
   const activeLineIdx = ref(-1)
+  const activePhraseOn = ref(false)   // 此刻是否在当前句的 [s, e) 之内（句后的过门里为 false）
+  const subtitleIdx = ref(-1)         // 字幕该显示的句；短空隙里沿用前一句，见 lib/subtitle.js
   const activeCharIdxRef = ref(-1)
   const activeSymIdx = ref(-1)
   const activeAttrsRef = shallowRef([])
@@ -43,6 +46,10 @@ function createClock() {
     }
     // 字 + 符号
     const line = li >= 0 ? model.lines[li] : null
+    const on = !!line && t < line.e
+    if (on !== activePhraseOn.value) activePhraseOn.value = on
+    const sub = subtitleIndex(model.lines, t)
+    if (sub !== subtitleIdx.value) subtitleIdx.value = sub
     const ci = activeCharIdx(line, t)
     if (ci !== activeCharIdxRef.value) activeCharIdxRef.value = ci
     let si = -1
@@ -114,7 +121,7 @@ function createClock() {
 
   return {
     // 响应式
-    activeLineIdx, activeCharIdx: activeCharIdxRef, activeSymIdx,
+    activeLineIdx, activePhraseOn, subtitleIdx, activeCharIdx: activeCharIdxRef, activeSymIdx,
     activeAttrs: activeAttrsRef, breathPulse, playing, rate, hasVideo, loopLine,
     // 方法
     getTime, duration, togglePlay, setPlaying, seek, setRate, attachVideo, onFrame, start, stop,

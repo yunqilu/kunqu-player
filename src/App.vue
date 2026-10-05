@@ -1,15 +1,21 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import LeftColumn from './components/LeftColumn.vue'
 import ReaderView from './components/ReaderView.vue'
 import Transport from './components/Transport.vue'
 import Timeline from './components/Timeline.vue'
 import PhraseFlow from './components/PhraseFlow.vue'
 import ScoreReviewPanel from './components/ScoreReviewPanel.vue'
+import SubtitleBar from './components/SubtitleBar.vue'
 import { clock } from './composables/useClock'
 import { model } from './lib/model'
 import { probeVideo } from './lib/video'
+import { loadSubtitlePref, saveSubtitlePref } from './lib/subtitle'
 import { lang, setLang, t } from './i18n'
+
+// 英文字幕条：唱词始终是中文，所以中文界面下也可以开着对照
+const showSubs = ref(loadSubtitlePref())
+watch(showSubs, (on) => saveSubtitlePref(on))
 
 const LANGS = [{ code: 'zh', label: '中' }, { code: 'en', label: 'EN' }]
 
@@ -82,6 +88,7 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
         <button class="go" @click="loadUrl">{{ t('header.load') }}</button>
         <label class="file">{{ t('header.localFile') }}<input type="file" accept="video/*" @change="onFile" hidden /></label>
       </div>
+      <label class="subs"><input type="checkbox" v-model="showSubs" data-subs /> {{ t('header.subtitles') }}</label>
       <div class="langs" role="group" :aria-label="t('header.language')">
         <button
           v-for="l in LANGS" :key="l.code" class="lang" :class="{ on: lang === l.code }"
@@ -93,6 +100,7 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
       <LeftColumn />
       <div class="main">
         <div class="stage">
+          <div class="vcol" :class="{ 'with-subs': showSubs }">
           <div class="videowrap">
             <video ref="videoEl" playsinline @error="onVideoError"></video>
             <div v-if="!hasVideo" class="novideo">
@@ -104,6 +112,8 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
               </template>
             </div>
             <div v-else-if="videoState === 'failed'" class="vfail">{{ t('video.failed') }}</div>
+          </div>
+          <SubtitleBar v-if="showSubs" class="subbar" />
           </div>
           <ReaderView />
         </div>
@@ -141,6 +151,11 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
 
 .stage { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; height: 40vh; }
 @media (max-width: 860px) { .stage { grid-template-columns: 1fr; } }
+/* 视频 + 字幕条上下排列，stage 的总高度不变；字幕条不参与决定这一列的宽度，所以和视频一样宽 */
+.vcol { display: grid; grid-template-rows: minmax(0, 1fr); gap: 6px; height: 100%; min-height: 0; }
+.vcol.with-subs { grid-template-rows: minmax(0, 1fr) auto; }
+.subbar { width: 0; min-width: 100%; box-sizing: border-box; }
+.subs { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
 .videowrap { position: relative; aspect-ratio: 16/9; height: 100%; background: #15120d; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 28px -16px #0009; }
 video { width: 100%; height: 100%; display: block; background: #15120d; object-fit: contain; }
 .novideo { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; gap: 6px; color: #b9ad97; padding: 16px; }

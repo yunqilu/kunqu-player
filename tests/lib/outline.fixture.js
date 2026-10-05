@@ -12,7 +12,7 @@ const phrase = (n, s, text, extra = {}) => ({
 
 export const outlineModel = () => {
   const phrases = [
-    phrase(1, 10, '一径行来'),
+    phrase(1, 10, '一径行来', { en: 'I have walked the whole path here,' }),
     phrase(2, 20, '但觉思情辗转', {
       status: 'variant',
       evidence: ['歌词断句：句末标点「，」', '演出「思」，歌词作「情」', '演出「情」，歌词作「思」'],

@@ -17,6 +17,10 @@ export default {
   'video.failed': 'This video could not be played. Try another URL or a local file.',
   'video.virtual': 'Without a video you can still press ▶ or Space to preview the sync on a virtual timeline.',
 
+  'header.subtitles': 'EN subtitles',
+  'subtitle.draft': 'draft',
+  'subtitle.draftTip': 'Draft translation, not yet reviewed',
+
   'review.drawer': 'Staff score review',
 
   'left.outlineTitle': 'Qupai · phrases · click to jump',
