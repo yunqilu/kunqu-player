@@ -2,152 +2,163 @@
 
 This context describes the score information recovered from Kunqu gongche notation and the progressively stronger guarantees made while converting it to staff notation.
 
+Each term is given in English with the project's Chinese term in parentheses. The _Avoid_ lists name wordings that must not be used for the concept; where the wording to avoid is a Chinese phrase, it is kept and glossed in English.
+
 ## Language
 
-**可校订的相对谱（Reviewable Relative Score）**:
-从工尺谱无损解析出的相对音高、唱词、板眼与腔格事件；所有未解决信息均显式保留，且不承诺绝对音高、确定时值或可演奏性。
-_Avoid_: 五线谱草稿、半成品乐谱、猜测谱
+**Reviewable Relative Score (可校订的相对谱)**:
+The relative pitches, lyrics, ban-yan beats and qiangge (腔格, vocal ornament) events parsed losslessly from the gongche score. Everything unresolved is kept explicitly, and no promise is made about absolute pitch, definite durations or playability.
+_Avoid_: 五线谱草稿 (staff-score draft), 半成品乐谱 (half-finished score), 猜测谱 (guessed score)
 
-**可演奏谱（Playable Score）**:
-已补齐并校验绝对音高、确定时值、休止、小节及必要演唱记号，可以导出为语义完整 MusicXML 的乐谱。
-_Avoid_: 完整谱、最终谱
+**Playable Score (可演奏谱)**:
+A score whose absolute pitches, definite durations, rests, bars and necessary vocal marks have all been filled in and validated, so that it can be exported as semantically complete MusicXML.
+_Avoid_: 完整谱 (complete score), 最终谱 (final score)
 
-**经校订的工尺源（Reviewed Gongche Source）**:
-经人工或权威底本核对、保持原始次序并保留来源说明的工尺谱数据；它是转换所依据的乐谱事实来源，已知缺漏应在这里修复。
-_Avoid_: 转换器补丁、隐性勘误、viewerModel 原谱
+**Reviewed Gongche Source (经校订的工尺源)**:
+Gongche score data that has been checked by a person or against an authoritative edition, keeps the original order and records where it came from. It is the source of score facts that conversion relies on, and known omissions should be repaired here.
+_Avoid_: 转换器补丁 (converter patch), 隐性勘误 (hidden erratum), viewerModel 原谱 (viewerModel as the original score)
 
-**校订清单（Review Manifest）**:
-与单一曲谱关联的版本化修订资料，显式记录 `gc.raw` 勘误、曲牌区段、笛色、板式、调律、出处、证据状态及曲目级配置覆盖；它与播放投影共同编译为经校订的工尺源。
-_Avoid_: 转换器特判、隐藏补丁、全局曲目配置
+**Review Manifest (校订清单)**:
+Versioned revision material attached to a single score. It explicitly records `gc.raw` errata, qupai sections, dise (笛色, flute key), banshi (板式, metrical type), tuning, sources, evidence status and score-level configuration overrides. Together with the playback projection it is compiled into the reviewed gongche source.
+_Avoid_: 转换器特判 (special case in the converter), 隐藏补丁 (hidden patch), 全局曲目配置 (global piece configuration)
 
-**播放投影（Playback Projection）**:
-为播放器同步与展示而生成的数据视图，例如 `viewerModel.json`；可携带时间戳与便捷字段，但不拥有乐谱事实，也不能覆盖经校订的工尺源。
-_Avoid_: 权威谱本、原始谱、唯一真相
+**Playback Projection (播放投影)**:
+A data view generated for player synchronization and display, such as `viewerModel.json`. It may carry timestamps and convenience fields, but it does not own score facts and cannot override the reviewed gongche source.
+_Avoid_: 权威谱本 (authoritative edition), 原始谱 (original score), 唯一真相 (single source of truth)
 
-**工尺原文（Gongche Raw）**:
-经校订的工尺源中按原有语法保存的 `gc.raw` 字符串；它是单条工尺标记的唯一语义输入，必须保留字符次序、组合关系与未知记号。
-_Avoid_: 拼接字段、标准化串、展开工尺
+**Gongche Raw (工尺原文)**:
+The `gc.raw` string kept in its original syntax in the reviewed gongche source. It is the only semantic input for a single gongche token, and must preserve character order, grouping and unknown marks.
+_Avoid_: 拼接字段 (concatenated fields), 标准化串 (normalized string), 展开工尺 (expanded gongche)
 
-**展开字段（Flattened Gongche Fields）**:
-播放投影中的 `b`、`r`、`p`、`bt`、`o`、`q` 等便捷字段；它们是 `gc.raw` 的有损派生结果，只能用于兼容展示和一致性诊断，不能参与生成乐谱事实。
-_Avoid_: 解析输入、备用真相、纠错来源
+**Flattened Gongche Fields (展开字段)**:
+The convenience fields `b`, `r`, `p`, `bt`, `o`, `q` and so on in the playback projection. They are lossy derivatives of `gc.raw`. They may be used only for compatible display and consistency diagnostics, never to produce score facts.
+_Avoid_: 解析输入 (parser input), 备用真相 (fallback truth), 纠错来源 (source for corrections)
 
-**相对谱中间表示（Relative Score IR）**:
-由工尺原文解析得到的版本化、可校订 JSON；它保留相对音高、唱词、板眼、腔格、来源位置、未知记号与诊断，是生成规范谱解释的唯一音乐输入。
-_Avoid_: 临时 JSON、MusicXML 替代品、最终输出
+**Relative Score IR (相对谱中间表示)**:
+The versioned, reviewable JSON parsed from gongche raw. It keeps relative pitch, lyrics, ban-yan, qiangge, source positions, unknown marks and diagnostics, and is the only musical input for producing the canonical score interpretation.
+_Avoid_: 临时 JSON (temporary JSON), MusicXML 替代品 (substitute for MusicXML), 最终输出 (final output)
 
-**MusicXML 导出（MusicXML Export）**:
-从规范谱解释生成纯五线谱面的交换文件；允许使用明确标记、可回溯的推定来补齐未决音乐语义，并投影不改变乐谱事件的紫色试听定位提示，但不把工尺字作为可见参考文字，也不得绕过相对谱和规范谱解释直接解释播放投影或工尺原文。
-_Avoid_: 直接转换、工尺转 XML、第一阶段解析
+**MusicXML Export (MusicXML 导出)**:
+An interchange file with a plain staff-notation surface, generated from the canonical score interpretation. It may use clearly marked, traceable inferences to fill in unresolved musical semantics, and may project purple playback cue marks that do not change score events. It does not show gongche characters as visible reference text, and must not interpret the playback projection or gongche raw directly, bypassing the relative score and the canonical score interpretation.
+_Avoid_: 直接转换 (direct conversion), 工尺转 XML (gongche-to-XML), 第一阶段解析 (first-stage parsing)
 
-**推定五线谱（Best-effort Staff Score）**:
-由相对谱生成、音乐语义尽量完整且所有推定均可见和可回溯的 MusicXML；它可供审阅与试奏，但只有推定项全部得到确认后才成为可演奏谱。
-_Avoid_: 猜测谱、最终谱、已确认谱
+**Best-effort Staff Score (推定五线谱)**:
+MusicXML generated from the relative score, with musical semantics as complete as possible and every inference visible and traceable. It can be reviewed and played through, but becomes a playable score only when every inferred item has been confirmed.
+_Avoid_: 猜测谱 (guessed score), 最终谱 (final score), 已确认谱 (confirmed score)
 
-**推定值（Inferred Value）**:
-依据已记录的昆曲规则或校订配置补出的音高、时值、休止、小节等谱面值；推定状态按字段记录，使同一谱面事件的相对音高、绝对音高、时值、休止等可以分别确认或推定，并分别关联工尺原文位置、所用规则及置信状态。
-_Avoid_: 默认值、自动修正、确定值
+**Inferred Value (推定值)**:
+A pitch, duration, rest, bar or other score value supplied from recorded Kunqu rules or review configuration. Inference status is recorded per field, so that the relative pitch, absolute pitch, duration, rest and so on of one score event can each be confirmed or inferred separately, each linked to its gongche raw position, the rule used and its confidence status.
+_Avoid_: 默认值 (default value), 自动修正 (automatic correction), 确定值 (definite value)
 
-**回溯链（Provenance Chain）**:
-从 MusicXML 中的谱面元素，经相对谱事件与推定记录，返回经校订的工尺源及具体 `gc.raw` 位置的稳定关联。
-_Avoid_: 调试日志、时间戳映射、备注文本
+**Provenance Chain (回溯链)**:
+The stable link from a score element in MusicXML, through relative-score events and inference records, back to the reviewed gongche source and the specific `gc.raw` position.
+_Avoid_: 调试日志 (debug log), 时间戳映射 (timestamp mapping), 备注文本 (note text)
 
-**双层推定标记（Dual-layer Inference Marking）**:
-在五线谱可见层用颜色与简短字段标签指出推定内容，并在数据层用 MusicXML 元素 `id` 回链相对谱中字段级的规则、来源位置和置信状态；任一层都不能单独充当完整回溯记录。
-_Avoid_: 只着色、XML 内嵌全部审校数据、无来源问号
+**Dual-layer Inference Marking (双层推定标记)**:
+In the visible layer of the staff score, colour and a short field label point out inferred content. In the data layer, MusicXML element `id`s link back to the field-level rule, source position and confidence status in the relative score. Neither layer alone is a complete provenance record.
+_Avoid_: 只着色 (colour only), XML 内嵌全部审校数据 (embedding all review data in the XML), 无来源问号 (a question mark with no source)
 
-**试听效果标记（Playback Effect Marking）**:
-规范 MusicXML 中用于指出试听渲染效果落点的紧凑编辑标记；它以紫色短标签配合全谱图例显示，不产生规范音符、休止或时值，原谱明确的腔格名称则以绿色显示，规范谱自身的推定继续使用橙色。
-_Avoid_: 反复书写“试听”、只靠颜色、表演效果音符
+**Playback Effect Marking (试听效果标记)**:
+A compact editorial mark in canonical MusicXML that shows where a playback rendering effect falls. It is shown as a short purple label together with a legend for the whole score, and produces no canonical note, rest or duration. Qiangge names stated explicitly in the source score are shown in green, and the canonical score's own inferences remain orange.
+_Avoid_: writing “试听” (shìtīng, "playback preview") over and over, 只靠颜色 (relying on colour alone), 表演效果音符 (notes for performance effects)
 
-**证据状态（Evidence Status）**:
-相对谱中每个可推定字段使用四种离散状态：`confirmed` 表示底本或人工确认，`derived` 表示由明确规则唯一推出，`inferred` 表示证据不足时采用的最佳推定，`unresolved` 表示尚无合理值。不得用百分比置信度替代这些可审查的证据类别。
-_Avoid_: 置信分数、真假标记、统一猜测状态
+**Evidence Status (证据状态)**:
+Each inferable field in the relative score uses one of four discrete states. `confirmed` means confirmed by the source edition or by a person. `derived` means uniquely derived by an explicit rule. `inferred` means the best inference when evidence is insufficient. `unresolved` means there is no reasonable value yet. Percentage confidence must not replace these reviewable evidence categories.
+_Avoid_: 置信分数 (confidence score), 真假标记 (true/false flag), 统一猜测状态 (a single "guessed" state)
 
-**最简量化（Minimal Rhythm Quantization）**:
-板式规则不能唯一确定板眼锚点间的音符时值时采用的兜底：保持工尺音顺序与锚点落位，优先等分，再选择附点和连音最少的合法节奏；所有受影响的起点和时值均标为 `inferred`，且不得读取播放时间戳。
-_Avoid_: 时间戳量化、任意均分、默认时值
+**Minimal Rhythm Quantization (最简量化)**:
+The fallback used when banshi rules cannot uniquely determine note durations between ban-yan anchors. It keeps the order of the gongche notes and the anchor positions, prefers equal division, and then chooses the legal rhythm with the fewest dots and tuplets. Every affected onset and duration is marked `inferred`, and playback timestamps must not be read.
+_Avoid_: 时间戳量化 (timestamp quantization), 任意均分 (arbitrary equal division), 默认时值 (default duration)
 
-**通用有拍分配（Canonical Metered Allocation）**:
-在板式已确认、板眼循环合法且读谱规则唯一命中时，依据板眼窗口、发音次序和旁注轻重关系确定有拍音符时值的规则；结果是可从谱面与已确认规则唯一推出的 `derived` 值，只有前提不满足时才回退到推定。
-_Avoid_: 网站猜拍、默认等分、播放时值
+**Canonical Metered Allocation (通用有拍分配)**:
+The rule that determines metered note durations from the ban-yan window, the order of articulation and the weight relation of side notes, when the banshi is confirmed, the ban-yan cycle is legal and exactly one score-reading rule applies. The result is a `derived` value, uniquely derivable from the score and confirmed rules. Only when these preconditions fail does it fall back to inference.
+_Avoid_: 网站猜拍 (guessing the beat from the website), 默认等分 (default equal division), 播放时值 (playback duration)
 
-**板眼锚点（Ban-yan Anchor）**:
-附着于工尺音、用于定位强拍、弱拍、赠板、底板或侧位的节拍事件；当前 `1..8` 是播放投影所用的类别码，连续数字表示同一音经过多个锚点，不表示音长数值或重复发音。
-_Avoid_: 时长数字、拍数、重复音
+**Ban-yan Anchor (板眼锚点)**:
+A beat event attached to a gongche note that locates a strong beat, weak beat, zengban (赠板, added beat), diban (底板, beat falling on a rest) or offbeat position. The current `1..8` are category codes used by the playback projection. Consecutive digits mean that the same note passes through several anchors, not a duration value or a repeated articulation.
+_Avoid_: 时长数字 (duration number), 拍数 (beat count), 重复音 (repeated note)
 
-**气口与腔格码（Breath and Qiangge Codes）**:
-工尺原文中的 `/` 表示气口，`h` 表示豁腔，`s` 表示擞腔，`d` 表示叠腔，`c` 表示掇腔；“撮腔”以及网站源码的 `cuoqiang` 是 `c` 的兼容别名。码义已人工确认，但除已审定的叠腔和掇腔外，具体展开成哪些西乐音符和时值仍由腔格实现配置决定。
-_Avoid_: `/` 休止、`h` 橄榄腔、`s` 滑音、`d` 断腔、`c` 擞腔
+**Breath and Qiangge Codes (气口与腔格码)**:
+In gongche raw, `/` is a qikou (气口, breath mark), `h` is huoqiang (豁腔), `s` is souqiang (擞腔), `d` is dieqiang (叠腔) and `c` is duoqiang (掇腔). “撮腔” (cuōqiāng) and the website source's `cuoqiang` are compatible aliases of `c`. The meaning of the codes has been confirmed by a person, but apart from the reviewed dieqiang and duoqiang, which Western notes and durations each one expands to is still decided by the qiangge realization configuration.
+_Avoid_: reading `/` as a rest, `h` as 橄榄腔 (gǎnlǎnqiāng, the "olive" swell), `s` as 滑音 (glide), `d` as 断腔 (duànqiāng, the cut-off ornament), or `c` as 擞腔 (sǒuqiāng)
 
-**腔格实现（Qiangge Realization）**:
-把腔格码展开为具体音程、重复次数、时值与西乐记号的版本化规则；没有经审定实现时，气口可直接写为呼吸记号，腔格只以中文名称和 `other-ornament` 保真，不制造微观音符。
-_Avoid_: 腔格名称即音列、全局装饰音映射、源码提示标签
+**Qiangge Realization (腔格实现)**:
+The versioned rules that expand a qiangge code into concrete intervals, repeat counts, durations and Western notation marks. Where no reviewed realization exists, a breath mark may be written directly as a breath sign, and a qiangge is preserved only by its Chinese name and `other-ornament`, without manufacturing micro-notes.
+_Avoid_: 腔格名称即音列 (treating the qiangge name as a note series), 全局装饰音映射 (a global ornament mapping), 源码提示标签 (hint labels from source code)
 
-**叠腔展开（Dieqiang Realization）**:
-工尺原文中每个 `d` 在规范谱解释中产生一次前一主音的同音重复；重复音高和次数为 `derived`，时值则按其有拍或散板上下文分别取得自身证据状态。
-_Avoid_: 仅标叠腔、试听重复、固定叠腔时值
+**Dieqiang Realization (叠腔展开)**:
+Each `d` in gongche raw produces, in the canonical score interpretation, one repetition of the preceding main note at the same pitch. The repeated pitch and the count are `derived`; the duration takes its own evidence status from its metered or free-meter context.
+_Avoid_: 仅标叠腔 (only labelling it dieqiang), 试听重复 (repeating in playback only), 固定叠腔时值 (a fixed dieqiang duration)
 
-**掇腔展开（Duoqiang Realization）**:
-工尺原文中的 `c` 明确标示掇腔（兼容别名“撮腔”）；规范谱解释采用“顿—休—带”结构：前音实唱半拍，中间休止四分之一拍，后续谱面音轻带四分之一拍。识别和展开均不以前置气口、字声或出口位置为条件；这些只是传统常见语境。结构、休止存在及 `2:1:1` 比例由已审定规则 `derived`；有拍上下文能唯一定位时，休止使用普通黑色，散板或拍位不确定而使具体 onset/duration 为 `inferred` 时才使用橙色，绝不使用试听层紫色。前后音明记的板眼锚点优先于 `2:1:1`，不得为满足比例移动锚点；比例与锚点不兼容但仍有正时值空间时保留“顿—休—带”，将受影响的具体时值标为 `inferred` 并报告 `DUOQIANG_ANCHOR_CONFLICT`；若锚点间连正时值休止也容不下，则不移动锚点、不生成零时值或 grace rest，保留原音与绿色标签，把微观展开标为 `unresolved` 并报告 `DUOQIANG_NO_METRIC_SPACE`。“带”是正常大小、黑色且具有时值的谱面音；绿色“掇腔”文字与 `other-ornament` 只在含 `c` 的“顿”音上显示一次，休止和“带”只通过共同 `realizationId` 回链，不重复标签。即使展开为 `unresolved`，标签仍留在“顿”音上。寻找“带”时可跨 `gc` token 和唱词字，但只能取同一已确认乐句与曲牌区段内的下一个谱面音；遇确认句界或曲牌边界即停止。跨唱词字取得的“带”仍延唱前一字，在 MusicXML 中使用前字的 lyric extension；后一唱词只能在其自身剩余工尺音中挂到非“带”主音，不得连锁挤占再下一唱词的音。若没有这种落点，则把该唱词保留为橙色待校文字并报告 `DUOQIANG_LYRIC_COLLISION`。找不到合格的“带”时只保留绿色“掇腔”标签并报告未解决诊断。同一前音后连续出现多个 `c` 时只实现第一枚并报告 `DUPLICATE_DUOQIANG_CODE`，不得生成多组结构。
-_Avoid_: 同音复制、撮腔与叠腔混同、气口前置条件、平声字校验、出口位置校验、cue note、grace note、grace rest、零时值休止、绿色带音、歌词连锁顺延、连续掇腔展开、为凑比例移动板眼
+**Duoqiang Realization (掇腔展开)**:
+A `c` in gongche raw explicitly marks duoqiang (compatible alias “撮腔”, cuōqiāng). The canonical score interpretation uses a “顿—休—带” (dùn–xiū–dài, stop–rest–carry) structure: the preceding note is sung solidly for half a beat, a rest of a quarter beat follows, and the next written note is carried lightly for a quarter beat.
 
-**旁注音（Side Note）**:
-由工尺原文括号范围标出的轻位行腔音；默认具有时值并参与板眼区间的节奏分配，在五线谱中以较小尺寸显示，只有腔格或曲牌规则明确指定时才成为零时值倚音。
-_Avoid_: 一律倚音、无时值小音符、`gc.p` 真值
+- **Conditions.** Recognition and realization do not depend on a preceding breath mark, the tone of the syllable or the position of the release. These are only common traditional contexts.
+- **Evidence.** The structure, the existence of the rest and the `2:1:1` ratio are `derived` from the reviewed rule. When a metered context locates it uniquely, the rest is ordinary black. Only when free meter or an uncertain beat position makes the concrete onset or duration `inferred` is it orange. It is never the purple of the playback layer.
+- **Anchors come first.** Ban-yan anchors written on the preceding and following notes take priority over `2:1:1`; anchors must not be moved to satisfy the ratio. If the ratio and the anchors are incompatible but there is still room for positive durations, the stop–rest–carry structure is kept, the affected concrete durations are marked `inferred`, and `DUOQIANG_ANCHOR_CONFLICT` is reported. If the space between anchors cannot hold even a rest of positive duration, the anchors are not moved, no zero-duration rest or grace rest is produced, the original note and the green label are kept, the micro-realization is marked `unresolved`, and `DUOQIANG_NO_METRIC_SPACE` is reported.
+- **The carry note.** The "carry" is a normal-sized, black score note with duration. The green “掇腔” (duōqiāng) text and `other-ornament` appear once only, on the "stop" note that carries the `c`. The rest and the "carry" link back only through a shared `realizationId` and do not repeat the label. Even when the realization is `unresolved`, the label stays on the "stop" note.
+- **Finding the carry note.** The search may cross `gc` tokens and lyric characters, but may take only the next score note within the same confirmed phrase and qupai section. It stops at a confirmed phrase boundary or a qupai boundary.
+- **Lyrics.** A "carry" taken across a lyric character still prolongs the preceding character, using that character's lyric extension in MusicXML. The following lyric may attach only to a non-"carry" main note among its own remaining gongche notes, and must not push on to take a note of the lyric after it. If there is no such landing place, that lyric is kept as orange text awaiting review and `DUOQIANG_LYRIC_COLLISION` is reported.
+- **Failures.** When no eligible "carry" is found, only the green “掇腔” label is kept and an unresolved diagnostic is reported. When several `c` follow the same preceding note, only the first is realized and `DUPLICATE_DUOQIANG_CODE` is reported; several structures must not be generated.
 
-**无工尺文字（Unpitched Text Event）**:
-播放投影中 `gc=[]` 的文字；须由校订清单分类为念白、前音延唱、漏谱或未解决文字，不能仅凭空数组生成音符或休止符。
-_Avoid_: 空拍、默认休止、无声歌词
+_Avoid_: 同音复制 (same-pitch copy), confusing 撮腔 with 叠腔 (dieqiang), 气口前置条件 (a breath-mark precondition), 平声字校验 (a level-tone check), 出口位置校验 (a release-position check), cue note, grace note, grace rest, 零时值休止 (zero-duration rest), 绿色带音 (a green carry note), 歌词连锁顺延 (chained shifting of lyrics), 连续掇腔展开 (realizing consecutive duoqiang), 为凑比例移动板眼 (moving ban-yan to fit the ratio)
 
-**推定休止（Inferred Rest）**:
-除已审定腔格明确要求的规范休止外，仅在有拍区段中，由已确认的小节结构与板眼锚点共同要求、且没有发音事件占据的拍位所产生的休止；这种缺口休止的存在与长度均标为 `inferred`。底板只能提供停顿候选，气口、空工尺数组及视频间隙均不能单独生成休止。
-_Avoid_: 空隙休止、气口休止、底板固定休止
+**Side Note (旁注音)**:
+A lightly placed melodic note marked by a parenthesized range in gongche raw. By default it has duration and takes part in the rhythmic allocation of its ban-yan interval. It is shown at a smaller size in staff notation, and becomes a zero-duration grace note only when a qiangge or qupai rule says so explicitly.
+_Avoid_: 一律倚音 (always a grace note), 无时值小音符 (a small note without duration), `gc.p` 真值 (`gc.p` as the truth)
 
-**散板排谱时值（Free-meter Engraving Duration）**:
-为满足 MusicXML 音符结构而给散板事件分配的最简相对时值；谱面使用 `senza-misura`，仅按确认的句界或区段分组，不补齐小节，所有时值均为 `inferred` 且不代表实际演唱速度。
-_Avoid_: 散板拍号、录像时值、隐形固定拍
+**Unpitched Text Event (无工尺文字)**:
+Text with `gc=[]` in the playback projection. The review manifest must classify it as spoken text, a prolongation of the previous note, a gap in the score, or unresolved text. An empty array alone must not produce a note or a rest.
+_Avoid_: 空拍 (empty beat), 默认休止 (default rest), 无声歌词 (silent lyric)
 
-**默认板式拍格（Default Banshi Meter）**:
-转换配置在没有曲谱级覆盖时采用的西乐拍格：流水板为 `1/4`，一板一眼为 `2/4`，一板三眼为 `4/4`，一板三眼加赠板为按 `4+4` 分组的 `8/4`，散板为 `senza-misura`；拍格不隐含速度。
-_Avoid_: 板式速度、时间戳拍号、赠板 `4/2`
+**Inferred Rest (推定休止)**:
+Apart from canonical rests explicitly required by a reviewed qiangge, a rest arises only in a metered section, at a beat position that the confirmed bar structure and the ban-yan anchors together require and that no sounding event occupies. Both the existence and the length of such a gap rest are marked `inferred`. A diban can only offer a candidate pause; a breath mark, an empty gongche array or a gap in the video cannot produce a rest on its own.
+_Avoid_: 空隙休止 (gap rest), 气口休止 (breath-mark rest), 底板固定休止 (a fixed rest on the diban)
 
-**曲牌区段（Qupai Section）**:
-由曲牌边界限定、携带本段笛色、定调、板式及其来源的乐谱上下文；转换规则按区段解析和应用，不能假设一套曲谱全程使用同一调门或板式。
-_Avoid_: 全曲默认调、硬编码曲牌、播放器片段
+**Free-meter Engraving Duration (散板排谱时值)**:
+The simplest relative duration assigned to a free-meter (散板, sǎnbǎn) event so that MusicXML note structure is satisfied. The score uses `senza-misura` and groups only by confirmed phrase boundaries or sections, without filling out bars. Every duration is `inferred` and does not represent the actual singing tempo.
+_Avoid_: 散板拍号 (a time signature for free meter), 录像时值 (durations from the recording), 隐形固定拍 (a hidden fixed beat)
 
-**转换配置（Conversion Profile）**:
-可复用、可版本化的昆曲读谱规则集合，包括笛色映射、调律、板式、量化与腔格实现；曲目数据只引用或覆盖配置，不得把《寻梦》等单一曲目的值写入通用转换逻辑。
-_Avoid_: 寻梦规则、转换器常量、曲目特判
+**Default Banshi Meter (默认板式拍格)**:
+The Western meter the conversion profile uses when there is no score-level override: `1/4` for liushui ban (流水板), `2/4` for one ban one yan (一板一眼), `4/4` for one ban three yan (一板三眼), `8/4` grouped as `4+4` for one ban three yan with zengban (一板三眼加赠板), and `senza-misura` for free meter (散板). The meter implies no tempo.
+_Avoid_: 板式速度 (banshi tempo), 时间戳拍号 (a time signature from timestamps), 赠板 `4/2` (`4/2` for zengban)
 
-**规范谱解释（Canonical Score Interpretation）**:
-从相对谱唯一生成可审阅谱面语义的解释层；它包含原谱事实、确定推导和可回溯推定，是唯一 MusicXML 的音符、休止、音高、拍位和时值来源，不为追求试听效果而添加未经审定的乐谱事件。Playback Plan 只能向 MusicXML 提供不改变音乐语义的紫色定位提示。
-_Avoid_: 多版本乐谱、默认试听、网站兼容谱
+**Qupai Section (曲牌区段)**:
+A score context bounded by qupai boundaries, carrying this section's dise, tuning, banshi and their sources. Conversion rules are resolved and applied per section, and must not assume that one score uses the same key or banshi throughout.
+_Avoid_: 全曲默认调 (a default key for the whole piece), 硬编码曲牌 (hard-coded qupai), 播放器片段 (player segment)
 
-**试听渲染（Playback Rendering）**:
-在规范谱解释之上添加气口停顿、句尾伸缩、重新发音、滑音、振音等演奏效果的过程；它生成试听方案而不是第二份 MusicXML，且不得反向修改规范谱解释或相对谱。
-_Avoid_: 试听版乐谱、第二套规范时值、回写乐谱
+**Conversion Profile (转换配置)**:
+A reusable, versionable set of Kunqu score-reading rules, covering dise mapping, tuning, banshi, quantization and qiangge realization. Piece data only references or overrides a profile. Values belonging to a single piece such as *Seeking the Dream* (寻梦) must not be written into the general conversion logic.
+_Avoid_: 寻梦规则 (rules for Seeking the Dream), 转换器常量 (converter constants), 曲目特判 (per-piece special cases)
 
-**试听方案（Playback Plan）**:
-由试听渲染生成、供浏览器音频引擎调度的版本化事件数据；它保存规范谱来源 ID、拍位、速度映射及表演参数，但不是乐谱交换格式。
-_Avoid_: 试听 MusicXML、MIDI 真相、规范谱
+**Canonical Score Interpretation (规范谱解释)**:
+The interpretation layer that produces reviewable score semantics uniquely from the relative score. It contains facts from the source score, definite derivations and traceable inferences, and is the only source of notes, rests, pitches, beat positions and durations for the single MusicXML. It does not add unreviewed score events for the sake of a playback effect. The Playback Plan may give MusicXML only purple cue marks that do not change the musical semantics.
+_Avoid_: 多版本乐谱 (multiple score versions), 默认试听 (default playback), 网站兼容谱 (a website-compatible score)
 
-**区段上下文解析（Section Context Resolution）**:
-为每个曲牌区段展开完整笛色、定调、板式等上下文的过程；解析优先级固定为本段明确标注、转换配置中有出处的承接规则、最佳推定，并按实际证据写入对应状态。
-_Avoid_: 无条件继承、隐式全局默认、空上下文
+**Playback Rendering (试听渲染)**:
+The process of adding performance effects such as breath pauses, phrase-end stretching, re-articulation, glides and vibrato on top of the canonical score interpretation. It produces a playback plan rather than a second MusicXML, and must not modify the canonical score interpretation or the relative score in return.
+_Avoid_: 试听版乐谱 (a playback edition of the score), 第二套规范时值 (a second set of canonical durations), 回写乐谱 (writing back into the score)
 
-**近似西乐定调（Approximate Western Tuning）**:
-已知笛色但没有精确绝对音高与律制时，依据正式对照表采用十二平均律 `A4=440` 生成可交换五线谱的定调；所得绝对音高一律为 `inferred`，并可被传本或演出的实际 `shangPitch`、调律和移调覆盖。
-_Avoid_: 传统律制、确认调高、笛色等于西乐调
+**Playback Plan (试听方案)**:
+Versioned event data produced by playback rendering for scheduling by the browser audio engine. It stores canonical-score source IDs, beat positions, the tempo map and performance parameters, but is not a score interchange format.
+_Avoid_: 试听 MusicXML (playback MusicXML), MIDI 真相 (MIDI as the truth), 规范谱 (canonical score)
 
-**默认定调（Default Tuning Inference）**:
-曲牌的笛色也无法合理确定时，通用转换器仍以十二平均律 `A4=440`、中音区 `上=D4`（即 `1=D`）生成五线谱；定调及由此得到的绝对音高均为 `inferred`，必须显示推定标记，并允许曲谱配置整体移调或覆盖 `shangPitch`。
-_Avoid_: 调门未定参考谱、`1=C`、确认的小工调
+**Section Context Resolution (区段上下文解析)**:
+The process of expanding the complete dise, tuning, banshi and other context for each qupai section. The resolution priority is fixed: what the section states explicitly, then sourced carry-over rules in the conversion profile, then the best inference. The corresponding status is written according to the actual evidence.
+_Avoid_: 无条件继承 (unconditional inheritance), 隐式全局默认 (implicit global default), 空上下文 (empty context)
 
-**转换核心（Conversion Core）**:
-不依赖 Vue 或视频时钟的纯 JavaScript 模块，负责校订编译、工尺解析、相对谱与规范谱生成、MusicXML 导出及 Playback Plan 渲染；命令行和 viewer 必须调用同一核心。
-_Avoid_: viewer 转换逻辑、CLI 专用实现、寻梦导出器
+**Approximate Western Tuning (近似西乐定调)**:
+When the dise is known but there is no exact absolute pitch or temperament, the tuning that produces an interchangeable staff score from the formal correspondence table using twelve-tone equal temperament at `A4=440`. The resulting absolute pitches are always `inferred`, and can be overridden by the actual `shangPitch`, tuning and transposition of an edition or a performance.
+_Avoid_: 传统律制 (traditional temperament), 确认调高 (confirmed pitch level), 笛色等于西乐调 (dise equals a Western key)
 
-**审阅闭环（Review Loop）**:
-viewer 中针对推定和未决字段的本地编辑流程：修改值、标记人工确认、记录证据备注、重新生成相对谱、规范谱、MusicXML 与 Playback Plan，并下载新版校订清单；首版不依赖服务器、账号或数据库。
-_Avoid_: 只读诊断、数据库审校、直接修改生成 XML
+**Default Tuning Inference (默认定调)**:
+When even the dise of a qupai cannot be reasonably determined, the general converter still produces a staff score using twelve-tone equal temperament at `A4=440` with the middle-register `上` (shàng, the gongche degree) set to `D4`, that is `1=D`. The tuning and the absolute pitches that follow from it are `inferred`, must show the inference mark, and may be transposed as a whole or have `shangPitch` overridden by the score configuration.
+_Avoid_: 调门未定参考谱 (a reference score with undetermined key), `1=C`, 确认的小工调 (a confirmed xiaogong key)
+
+**Conversion Core (转换核心)**:
+Pure JavaScript modules that depend on neither Vue nor the video clock. They handle review compilation, gongche parsing, generating the relative score and the canonical score, MusicXML export and Playback Plan rendering. The command line and the viewer must call the same core.
+_Avoid_: viewer 转换逻辑 (conversion logic in the viewer), CLI 专用实现 (a CLI-only implementation), 寻梦导出器 (an exporter for Seeking the Dream)
+
+**Review Loop (审阅闭环)**:
+The local editing workflow in the viewer for inferred and unresolved fields: change a value, mark it as confirmed by a person, record an evidence note, regenerate the relative score, canonical score, MusicXML and Playback Plan, and download the new review manifest. The first version depends on no server, account or database.
+_Avoid_: 只读诊断 (read-only diagnostics), 数据库审校 (database-backed review), 直接修改生成 XML (editing the generated XML directly)
