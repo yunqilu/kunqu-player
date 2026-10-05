@@ -2,10 +2,12 @@
 import { ref, watch, nextTick } from 'vue'
 import { PLAY_INFO } from '../data/meta'
 import { model } from '../lib/model'
+import { buildOutline } from '../lib/outline'
 import { clock } from '../composables/useClock'
 
 const railEl = ref(null)
 const { activeLineIdx } = clock
+const outline = buildOutline(model)
 
 const fmt = (s) => { s = Math.max(0, s || 0); const m = (s / 60) | 0, x = (s % 60) | 0; return `${m}:${String(x).padStart(2, '0')}` }
 
@@ -32,16 +34,23 @@ watch(activeLineIdx, async (i) => {
     </section>
 
     <section class="rail-wrap">
-      <div class="rail-hd">句级时间轨 · 点击跳转</div>
+      <div class="rail-hd">曲牌 · 分句 · 点击跳转</div>
       <div class="rail" ref="railEl">
-        <button
-          v-for="(l, i) in model.lines" :key="l.id" :data-i="i"
-          class="rail-item" :class="{ on: i === activeLineIdx }"
-          @click="clock.seek(l.s)"
-          :title="`${fmt(l.s)} ${l.text}`">
-          <span class="rt">{{ fmt(l.s) }}</span>
-          <span class="rx">{{ l.text }}</span>
-        </button>
+        <section v-for="g in outline" :key="g.key" class="sec">
+          <h3 class="sec-hd">
+            <span class="sec-nm" :class="{ bai: g.kind === '白' }">{{ g.label }}</span>
+            <span class="sec-ct">{{ g.count }} 句<template v-if="g.inferred"> · 推定 {{ g.inferred }}</template></span>
+          </h3>
+          <button
+            v-for="x in g.items" :key="x.id" :data-i="x.index"
+            class="rail-item" :class="[x.status, { on: x.index === activeLineIdx }]"
+            @click="clock.seek(x.s)"
+            :title="x.tip ? `${fmt(x.s)} ${x.text}\n${x.tip}` : `${fmt(x.s)} ${x.text}`">
+            <span class="rt">{{ fmt(x.s) }}</span>
+            <span class="rx">{{ x.text }}</span>
+            <span v-if="x.status === 'variant'" class="mark">异</span>
+          </button>
+        </section>
       </div>
     </section>
   </aside>
@@ -74,4 +83,26 @@ watch(activeLineIdx, async (i) => {
 .rt { font-family: var(--num); font-size: 10.5px; color: var(--dai); min-width: 30px; }
 .rail-item.on .rt { color: var(--zhu-soft); }
 .rx { font-size: 14px; letter-spacing: .03em; }
+
+.sec-hd {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  margin: 10px 0 2px; padding: 3px 8px 3px 10px; font-weight: normal;
+  border-bottom: 1px solid var(--line-2);
+}
+.sec:first-child .sec-hd { margin-top: 2px; }
+.sec-nm { font-size: 13px; letter-spacing: .08em; color: var(--ink); }
+.sec-nm.bai { color: var(--dai); }
+.sec-ct { font-family: var(--num); font-size: 10.5px; color: var(--dai); white-space: nowrap; }
+
+/* 推定的分句：虚线左边框 + 淡色，不与确定的分句混同 */
+.rail-item.inferred { border-left: 2px dashed var(--line); border-radius: 0 6px 6px 0; }
+.rail-item.inferred .rx { color: var(--dai); font-style: italic; }
+.rail-item.inferred.on { border-left: 2px dashed var(--zhu); }
+.rail-item.inferred.on .rx { color: var(--zhu); }
+
+/* 与歌词有出入的分句 */
+.mark {
+  margin-left: auto; font-size: 10px; line-height: 1; padding: 2px 3px;
+  color: var(--qing); border: 1px solid currentColor; border-radius: 3px; opacity: .8;
+}
 </style>
