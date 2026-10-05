@@ -1,0 +1,30 @@
+name: kunqu-player
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    working_dir: /work
+    volumes:
+      - ..:/work
+    command: uvicorn app.api:app --app-dir backend --reload --host 0.0.0.0 --port 8000
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    working_dir: /work
+    volumes:
+      - ..:/work
+      # 匿名卷：用镜像里 npm ci 出来的 linux 版依赖，遮住宿主机 darwin 版的 node_modules
+      - /work/node_modules
+    environment:
+      VITE_API_TARGET: http://api:8000
+    command: npx vite --host 0.0.0.0
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - api
