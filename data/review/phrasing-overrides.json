@@ -1,22 +1,22 @@
 {
   "piece": "xunmeng",
   "exclude": [
-    {"ch": "哭？", "s": 1367.94, "reason": "用户决定删除：原标注带问号，非唱词"}
+    {"ch": "哭？", "s": 1367.94, "reason": "用户决定删除：原标注带问号，非唱词", "reason_en": "Removed by the editor: the original annotation carries a question mark and is not part of the sung text"}
   ],
   "tail": [
-    {"text": "佳人拾翠春庭院", "kind": "白", "qupai": null, "note": "语义：七字对句的上句"},
-    {"text": "侍女添香午院清", "kind": "白", "qupai": null, "note": "语义：七字对句的下句"},
-    {"text": "不知小姐哪里去了", "kind": "白", "qupai": null, "note": "语义：完整问句"},
-    {"text": "呀", "kind": "白", "qupai": null, "note": "语义：独立叹词"},
-    {"text": "看小姐走乏了", "kind": "白", "qupai": null, "note": "语义：完整分句"},
-    {"text": "在梅树边打睡呢", "kind": "白", "qupai": null, "note": "语义：完整分句"},
-    {"text": "小姐", "kind": "白", "qupai": null, "note": "语义：呼唤"},
-    {"text": "小姐", "kind": "白", "qupai": null, "note": "语义：重复呼唤"},
-    {"text": "春香", "kind": "白", "qupai": null, "note": "语义：称呼"},
-    {"text": "小姐", "kind": "白", "qupai": null, "note": "语义：称呼"},
-    {"text": "我", "kind": "白", "qupai": null, "note": "用户决定：与「丽娘」按停顿和呼吸点断开"},
-    {"text": "丽娘", "kind": "白", "qupai": null, "note": "用户决定：与「我」按停顿和呼吸点断开"},
-    {"text": "少不得楼上花枝", "kind": "唱", "qupai": null, "note": "语义：完整分句；曲牌不见于歌词文件，不推定曲牌名"},
-    {"text": "也则是照独眠", "kind": "唱", "qupai": null, "note": "语义：完整分句；曲牌不见于歌词文件，不推定曲牌名"}
+    {"text": "佳人拾翠春庭院", "kind": "白", "qupai": null, "note": "语义：七字对句的上句", "note_en": "Meaning: first line of a seven-character couplet"},
+    {"text": "侍女添香午院清", "kind": "白", "qupai": null, "note": "语义：七字对句的下句", "note_en": "Meaning: second line of a seven-character couplet"},
+    {"text": "不知小姐哪里去了", "kind": "白", "qupai": null, "note": "语义：完整问句", "note_en": "Meaning: a complete question"},
+    {"text": "呀", "kind": "白", "qupai": null, "note": "语义：独立叹词", "note_en": "Meaning: a stand-alone exclamation"},
+    {"text": "看小姐走乏了", "kind": "白", "qupai": null, "note": "语义：完整分句", "note_en": "Meaning: a complete clause"},
+    {"text": "在梅树边打睡呢", "kind": "白", "qupai": null, "note": "语义：完整分句", "note_en": "Meaning: a complete clause"},
+    {"text": "小姐", "kind": "白", "qupai": null, "note": "语义：呼唤", "note_en": "Meaning: calling out to someone"},
+    {"text": "小姐", "kind": "白", "qupai": null, "note": "语义：重复呼唤", "note_en": "Meaning: the call repeated"},
+    {"text": "春香", "kind": "白", "qupai": null, "note": "语义：称呼", "note_en": "Meaning: a form of address"},
+    {"text": "小姐", "kind": "白", "qupai": null, "note": "语义：称呼", "note_en": "Meaning: a form of address"},
+    {"text": "我", "kind": "白", "qupai": null, "note": "用户决定：与「丽娘」按停顿和呼吸点断开", "note_en": "Editor's decision: split from \"丽娘\" at the pause and breath point"},
+    {"text": "丽娘", "kind": "白", "qupai": null, "note": "用户决定：与「我」按停顿和呼吸点断开", "note_en": "Editor's decision: split from \"我\" at the pause and breath point"},
+    {"text": "少不得楼上花枝", "kind": "唱", "qupai": null, "note": "语义：完整分句；曲牌不见于歌词文件，不推定曲牌名", "note_en": "Meaning: a complete clause. The qupai is not in the lyric file, so no qupai name is inferred"},
+    {"text": "也则是照独眠", "kind": "唱", "qupai": null, "note": "语义：完整分句；曲牌不见于歌词文件，不推定曲牌名", "note_en": "Meaning: a complete clause. The qupai is not in the lyric file, so no qupai name is inferred"}
   ]
 }

@@ -74,7 +74,7 @@ describe('LeftColumn in English', () => {
     expect(wrapper.find('.ttl').text()).toBe('The Peony Pavilion · Seeking the Dream')
     expect(item('但觉思情辗转').find('.mark').text()).toBe('var')
     expect(item('但觉思情辗转').attributes('title')).toContain('Variant wording')
-    expect(item('少不得楼上花枝').attributes('title')).toContain('Inferred phrase break. Evidence:')
+    expect(item('少不得楼上花枝').attributes('title')).toContain('Inferred phrase break. Evidence:\nMeaning: a complete clause')
     expect(item('一径行来').attributes('title')).toContain('From lyrics')
 
     i18n.setLang('zh', null)

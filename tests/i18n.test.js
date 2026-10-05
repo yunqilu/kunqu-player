@@ -34,7 +34,8 @@ describe('message tables', () => {
   it('use the same placeholders in both languages', () => {
     const holes = (text) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
     // 英文副标题里的演员和来源是写好的英文，不用中文的 meta 值
-    const exempt = new Set(['header.subtitle'])
+    // 人工写的说明各有一份中文和英文，占位符就是 {zh} / {en}
+    const exempt = new Set(['header.subtitle', 'evidence.override_note'])
     const offenders = Object.keys(en).filter((key) => !exempt.has(key) && holes(en[key]).join() !== holes(zh[key]).join())
 
     expect(offenders).toEqual([])

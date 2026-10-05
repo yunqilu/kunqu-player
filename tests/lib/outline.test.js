@@ -63,8 +63,10 @@ describe('buildOutline in English', () => {
   })
 
   it('introduces the evidence in English and keeps the lyrics Chinese', () => {
-    expect(outline[2].items[0].tip.split('\n')[0]).toBe('Inferred phrase break. Evidence:')
-    expect(outline[0].items[1].tip.split('\n')[0]).toBe('Differs from the libretto:')
+    expect(outline[2].items[0].tip).toBe(
+      'Inferred phrase break. Evidence:\nMeaning: a complete clause\nPause of 0.00 s after the phrase')
+    expect(outline[0].items[1].tip).toBe(
+      'Differs from the libretto:\nPerformed "思"; the libretto has "情"\nPerformed "情"; the libretto has "思"')
     expect(outline[0].items[0].text).toBe('一径行来')
   })
 })

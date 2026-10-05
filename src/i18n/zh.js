@@ -34,6 +34,22 @@ export default {
   'outline.tipInferred': '推定断句，依据：',
   'outline.tipVariant': '与歌词不同：',
 
+  // 依据：code 与后端 backend/app/evidence.py 的 TEMPLATES_ZH 一致，中文文本也必须相同
+  'evidence.lyric_punct': '歌词断句：句末标点「{punct}」',
+  'evidence.lyric_boundary': '歌词断句：句末为曲牌、角色标记或舞台提示',
+  'evidence.variant': '演出「{performed}」，歌词作「{lyric}」',
+  'evidence.dropped': '歌词「{text}」未唱（歌词原句：{clause}）',
+  'evidence.attached_no_prev': '「{ch}」不在歌词中，其前没有已对齐的字，归入后一句',
+  'evidence.attached_same_clause': '「{ch}」不在歌词中，前后的字同属本句',
+  'evidence.attached_group_next': '「{ch}」不在歌词中，原数据中与后字「{neighbor}」同属 {line_id}，归入后一句',
+  'evidence.attached_group_prev': '「{ch}」不在歌词中，原数据中与前字「{neighbor}」同属 {line_id}，归入前一句',
+  'evidence.attached_gap_next': '「{ch}」不在歌词中，距前字 {before} 秒、距后字 {after} 秒，归入后一句',
+  'evidence.attached_gap_prev': '「{ch}」不在歌词中，距前字 {before} 秒、距后字 {after} 秒，归入前一句',
+  'evidence.override_note': '{zh}',
+  'evidence.gap': '句后停顿 {seconds} 秒',
+  'evidence.breath': '停顿处有呼吸点',
+  'evidence.gap_excluded': '停顿中包含已排除的「{ch}」（{s}–{e} 秒）',
+
   'flow.title': '时长排版',
   'flow.hint': '一句一行 · 字宽随时长 · 点任意单元跳转',
   'flow.charVariant': '演出「{ch}」，歌词作「{lyric}」',

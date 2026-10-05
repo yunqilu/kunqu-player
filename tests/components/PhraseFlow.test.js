@@ -5,7 +5,7 @@ import { nextTick } from 'vue'
 
 const sym = (b, s, e) => ({ b, r: 0, p: false, bt: '', o: '', q: false, raw: b, s, e })
 const ch = (c, s, e, src = 'lyrics', gc = []) => ({ i: 0, ch: c, s, e, st: '普通唱', src, gc })
-const base = { variants: [], qiangge: [], actions: [], points: [], breaths: [], evidence: ['x'], lyric: null }
+const base = { variants: [], qiangge: [], actions: [], points: [], breaths: [], evidence: ['x'], evidence_items: [], lyric: null }
 
 const flowModel = () => {
   const phrases = [
@@ -47,7 +47,7 @@ const flowModel = () => {
     meta: { title: 't', performer: '', source: '', video: '', span: [10, 45] },
     lines: phrases, phrases, tracks: [], omitted: [], stats: {},
     breaths: [{ t: 17.5, l: '', tk: 'b' }],
-    excluded: [{ ch: '哭？', s: 33, e: 36, reason: '用户决定删除' }],
+    excluded: [{ ch: '哭？', s: 33, e: 36, reason: '用户决定删除', reason_en: 'Removed by the editor' }],
     sections: [
       { key: 's01', qupai: '懒画眉', kind: '唱', phrase_ids: ['p001', 'p002'] },
       { key: 's02', qupai: null, kind: '白', phrase_ids: ['p003'] },
@@ -265,6 +265,10 @@ describe('PhraseFlow in English', () => {
     expect(row(0).findAll('.ch').map((c) => c.text()).join('')).toBe('但觉思情')
     expect(row(0).findAll('.ac-b').map((a) => a.text())).toEqual(['指', '换边'])
     expect(row(0).find('.lane.ac .pt').attributes('title')).toBe('相')
+  })
+
+  it('gives the reason for an excluded character in English', () => {
+    expect(row(2).find('.gone').attributes('title')).toBe('Excluded "哭？" (0:33–0:36): Removed by the editor')
   })
 
   it('explains variant and padding characters in English', () => {

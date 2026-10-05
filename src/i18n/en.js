@@ -35,6 +35,22 @@ export default {
   'outline.tipInferred': 'Inferred phrase break. Evidence:',
   'outline.tipVariant': 'Differs from the libretto:',
 
+  // Evidence: codes match TEMPLATES_ZH in backend/app/evidence.py. Quoted lyrics stay Chinese.
+  'evidence.lyric_punct': 'Break from the libretto: the clause ends with "{punct}"',
+  'evidence.lyric_boundary': 'Break from the libretto: the clause ends at a qupai title, role marker or stage direction',
+  'evidence.variant': 'Performed "{performed}"; the libretto has "{lyric}"',
+  'evidence.dropped': 'Libretto "{text}" was not sung (libretto clause: "{clause}")',
+  'evidence.attached_no_prev': '"{ch}" is not in the libretto; no aligned character comes before it, so it joins the next phrase',
+  'evidence.attached_same_clause': '"{ch}" is not in the libretto; the characters before and after it belong to this phrase',
+  'evidence.attached_group_next': '"{ch}" is not in the libretto; the source data groups it with the following "{neighbor}" in {line_id}, so it joins the next phrase',
+  'evidence.attached_group_prev': '"{ch}" is not in the libretto; the source data groups it with the preceding "{neighbor}" in {line_id}, so it joins the previous phrase',
+  'evidence.attached_gap_next': '"{ch}" is not in the libretto; it comes {before} s after the previous character and {after} s before the next, so it joins the next phrase',
+  'evidence.attached_gap_prev': '"{ch}" is not in the libretto; it comes {before} s after the previous character and {after} s before the next, so it joins the previous phrase',
+  'evidence.override_note': '{en}',
+  'evidence.gap': 'Pause of {seconds} s after the phrase',
+  'evidence.breath': 'A breath point falls in the pause',
+  'evidence.gap_excluded': 'The pause contains the excluded "{ch}" ({s}–{e} s)',
+
   'flow.title': 'Duration layout',
   'flow.hint': 'One phrase per row · width follows duration · click anything to jump',
   'flow.charVariant': 'Performed "{ch}"; the libretto has "{lyric}"',

@@ -6,7 +6,7 @@ import { buildOutline } from '../lib/outline'
 import { layoutPhrase, packLines, spanX, timeToX } from '../lib/flowLayout'
 import { TRACKS, loadTrackPrefs, saveTrackPrefs } from '../lib/flowPrefs'
 import { toRenderNotes, beatClass, ORN_LABEL } from '../lib/gongche'
-import { t } from '../i18n'
+import { lang, t } from '../i18n'
 import { styleLabel, termFull, termShort } from '../i18n/terms'
 
 // ── 时长排版视图 ─────────────────────────────────────────────────────────────
@@ -86,7 +86,9 @@ const rows = computed(() => model.lines.map((p, i) => {
       .filter((g) => g.s >= p.s && (!next || g.s < next.s))
       .map((g) => ({
         ...g, ...spanX(L, g.s, g.e, BLOCK_MIN),
-        title: t('flow.excluded', { ch: g.ch, from: fmt(g.s), to: fmt(g.e), reason: g.reason }),
+        title: t('flow.excluded', {
+          ch: g.ch, from: fmt(g.s), to: fmt(g.e), reason: lang.value === 'zh' ? g.reason : g.reason_en ?? g.reason,
+        }),
       })),
   }
 }))

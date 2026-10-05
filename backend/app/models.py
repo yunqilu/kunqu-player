@@ -73,6 +73,11 @@ class Breath(Strict):
     tk: str
 
 
+class EvidenceItem(Strict):
+    code: str
+    params: dict[str, str]
+
+
 class Phrase(Strict):
     id: str
     index: int
@@ -80,6 +85,7 @@ class Phrase(Strict):
     kind: Literal["唱", "白"]
     status: Literal["confirmed", "variant", "inferred"]
     evidence: list[str]
+    evidence_items: list[EvidenceItem]  # 与 evidence 一一对应，供前端按语言显示
     lyric: str | None
     variants: list[Variant]
     text: str
@@ -103,6 +109,7 @@ class Excluded(Strict):
     s: float
     e: float
     reason: str
+    reason_en: str
 
 
 class Stats(Strict):

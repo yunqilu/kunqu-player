@@ -12,6 +12,10 @@ from difflib import SequenceMatcher
 from functools import lru_cache
 from pathlib import Path
 
+from app.evidence import item as evidence_item
+from app.evidence import render as render_evidence
+from app.evidence import seconds
+
 PUNCTUATION = "，。！？；、："
 
 _TOKEN = re.compile(r"【([^】]*)】|（([^）]*)）|([%s])|(\S)" % PUNCTUATION)
@@ -93,6 +97,14 @@ def flatten_chars(model: dict) -> list[dict]:
     return chars
 
 
+def _english(entry: dict, key: str, label: str) -> str:
+    """overrides 里每条中文说明旁边都要有英文；缺了就报错，不静默留空。"""
+    text = (entry.get(key) or "").strip()
+    if not text:
+        raise ValueError(f"overrides 里「{label}」缺少 {key}")
+    return text
+
+
 def apply_excludes(chars: list[dict], excludes: list[dict]) -> tuple[list[dict], list[dict]]:
     removed: dict[int, dict] = {}
     for rule in excludes:
@@ -106,7 +118,8 @@ def apply_excludes(chars: list[dict], excludes: list[dict]) -> tuple[list[dict],
             )
         hit = hits[0]
         removed[hit["i"]] = {
-            "ch": hit["ch"], "s": hit["s"], "e": hit["e"], "reason": rule["reason"],
+            "ch": hit["ch"], "s": hit["s"], "e": hit["e"],
+            "reason": rule["reason"], "reason_en": _english(rule, "reason_en", rule["ch"]),
         }
     kept = [c for c in chars if c["i"] not in removed]
     return kept, [removed[i] for i in sorted(removed)]
@@ -122,7 +135,7 @@ class Alignment:
     clause: list[int | None]  # 每个演唱字归属的歌词分句
     src: list[str | None]  # lyrics | variant | attached
     lyric: list[str | None]  # variant 字对应的歌词字
-    notes: dict[int, str] = field(default_factory=dict)  # attached 字的归句依据
+    notes: dict[int, dict] = field(default_factory=dict)  # attached 字的归句依据（evidence item）
     dropped: dict[int, list[str]] = field(default_factory=dict)  # 分句 → 没唱的歌词字
     tail_start: int = 0  # 歌词覆盖不到的尾段从这里开始
 
@@ -178,37 +191,41 @@ def align(chars: list[dict], clauses: list[Clause]) -> Alignment:
     return result
 
 
-def _attach(i: int, chars: list[dict], aligned: list[int | None]) -> tuple[int, str]:
+def _attach(i: int, chars: list[dict], aligned: list[int | None]) -> tuple[int, dict]:
     """歌词范围内对不上的字（如衬字）归到前一句还是后一句。"""
     x = chars[i]
     p = next((k for k in range(i - 1, -1, -1) if aligned[k] is not None), None)
     n = next(k for k in range(i + 1, len(chars)) if aligned[k] is not None)
-    label = f"「{x['ch']}」不在歌词中"
+    ch = x["ch"]
     if p is None:
-        return aligned[n], f"{label}，其前没有已对齐的字，归入后一句"
+        return aligned[n], evidence_item("attached_no_prev", ch=ch)
     if aligned[p] == aligned[n]:
-        return aligned[p], f"{label}，前后的字同属本句"
+        return aligned[p], evidence_item("attached_same_clause", ch=ch)
 
     same_prev = x["line_id"] == chars[p]["line_id"]
     same_next = x["line_id"] == chars[n]["line_id"]
     if same_next and not same_prev:
-        return aligned[n], f"{label}，原数据中与后字「{chars[n]['ch']}」同属 {x['line_id']}，归入后一句"
+        return aligned[n], evidence_item(
+            "attached_group_next", ch=ch, neighbor=chars[n]["ch"], line_id=str(x["line_id"]))
     if same_prev and not same_next:
-        return aligned[p], f"{label}，原数据中与前字「{chars[p]['ch']}」同属 {x['line_id']}，归入前一句"
+        return aligned[p], evidence_item(
+            "attached_group_prev", ch=ch, neighbor=chars[p]["ch"], line_id=str(x["line_id"]))
 
     before, after = x["s"] - chars[p]["e"], chars[n]["s"] - x["e"]
-    gaps = f"距前字 {before:.2f} 秒、距后字 {after:.2f} 秒"
+    gaps = {"before": seconds(before), "after": seconds(after)}
     if after < before:
-        return aligned[n], f"{label}，{gaps}，归入后一句"
-    return aligned[p], f"{label}，{gaps}，归入前一句"
+        return aligned[n], evidence_item("attached_gap_next", ch=ch, **gaps)
+    return aligned[p], evidence_item("attached_gap_prev", ch=ch, **gaps)
 
 
 # ── 分句 ─────────────────────────────────────────────────────────────────────
 
 
-def _phrase(chars: list[dict], src: list[str], **fields) -> dict:
+def _phrase(chars: list[dict], src: list[str], items: list[dict], **fields) -> dict:
     return {
         **fields,
+        "evidence": [render_evidence(entry) for entry in items],
+        "evidence_items": items,
         "text": "".join(c["ch"] for c in chars),
         "s": chars[0]["s"],
         "e": chars[-1]["e"],
@@ -240,22 +257,22 @@ def lyric_phrases(chars: list[dict], clauses: list[Clause], alignment: Alignment
         dropped = alignment.dropped.get(k, [])
 
         if clause.punct:
-            evidence = [f"歌词断句：句末标点「{clause.punct}」"]
+            items = [evidence_item("lyric_punct", punct=clause.punct)]
         else:
-            evidence = ["歌词断句：句末为曲牌、角色标记或舞台提示"]
-        evidence += [f"演出「{v['performed']}」，歌词作「{v['lyric']}」" for v in variants]
-        evidence += [alignment.notes[i] for i in indexes if i in alignment.notes]
+            items = [evidence_item("lyric_boundary")]
+        items += [evidence_item("variant", performed=v["performed"], lyric=v["lyric"]) for v in variants]
+        items += [alignment.notes[i] for i in indexes if i in alignment.notes]
         if dropped:
-            evidence.append(f"歌词「{''.join(dropped)}」未唱（歌词原句：{clause.text}）")
+            items.append(evidence_item("dropped", text="".join(dropped), clause=clause.text))
 
         clean = not dropped and all(alignment.src[i] == "lyrics" for i in indexes)
         phrases.append(_phrase(
             [chars[i] for i in indexes],
             [alignment.src[i] for i in indexes],
+            items,
             qupai=clause.qupai,
             kind=clause.kind,
             status="confirmed" if clean else "variant",
-            evidence=evidence,
             lyric=clause.text,
             variants=variants,
         ))
@@ -297,6 +314,11 @@ def omitted_lyrics(clauses: list[Clause], alignment: Alignment) -> list[dict]:
 BREATH_TOLERANCE = 0.02
 
 
+def _add_evidence(phrase: dict, entry: dict) -> None:
+    phrase["evidence_items"].append(entry)
+    phrase["evidence"].append(render_evidence(entry))
+
+
 def tail_phrases(chars: list[dict], entries: list[dict], breaths: list[dict],
                  excluded: list[dict]) -> list[dict]:
     """歌词覆盖不到的尾段：按 overrides 里显式列出的分句切，全部是推定。"""
@@ -315,10 +337,11 @@ def tail_phrases(chars: list[dict], entries: list[dict], breaths: list[dict],
         phrases.append(_phrase(
             chars[start:end],
             ["tail"] * (end - start),
+            [evidence_item(
+                "override_note", zh=entry["note"], en=_english(entry, "note_en", entry["text"]))],
             qupai=entry.get("qupai"),
             kind=entry["kind"],
             status="inferred",
-            evidence=[entry["note"]],
             lyric=None,
             variants=[],
         ))
@@ -326,14 +349,13 @@ def tail_phrases(chars: list[dict], entries: list[dict], breaths: list[dict],
 
     for phrase, following in zip(phrases, phrases[1:]):
         gap_start, gap_end = phrase["e"], following["s"]
-        phrase["evidence"].append(f"句后停顿 {gap_end - gap_start:.2f} 秒")
+        _add_evidence(phrase, evidence_item("gap", seconds=seconds(gap_end - gap_start)))
         if any(gap_start - BREATH_TOLERANCE <= b["t"] <= gap_end + BREATH_TOLERANCE for b in breaths):
-            phrase["evidence"].append("停顿处有呼吸点")
+            _add_evidence(phrase, evidence_item("breath"))
         for gone in excluded:
             if gap_start - BREATH_TOLERANCE <= gone["s"] and gone["e"] <= gap_end + BREATH_TOLERANCE:
-                phrase["evidence"].append(
-                    f"停顿中包含已排除的「{gone['ch']}」（{gone['s']:.2f}–{gone['e']:.2f} 秒）"
-                )
+                _add_evidence(phrase, evidence_item(
+                    "gap_excluded", ch=gone["ch"], s=seconds(gone["s"]), e=seconds(gone["e"])))
     return phrases
 
 

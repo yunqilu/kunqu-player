@@ -3,12 +3,16 @@
 import { t } from '../i18n/index.js'
 import { qupaiLabel, qupaiTip } from '../i18n/qupai.js'
 
-const ROUTINE = /^歌词断句/ // 每句都有的例行依据，不放进差异提示
+const ROUTINE = new Set(['lyric_punct', 'lyric_boundary']) // 每句都有的例行依据，不放进差异提示
+
+// 依据按界面语言显示：后端给 {code, params}，模板在 i18n 对照表的 evidence.<code>
+export const evidenceText = (item) => t(`evidence.${item.code}`, item.params)
 
 function tipOf(line) {
-  if (line.status === 'inferred') return [t('outline.tipInferred'), ...line.evidence].join('\n')
+  const items = line.evidence_items
+  if (line.status === 'inferred') return [t('outline.tipInferred'), ...items.map(evidenceText)].join('\n')
   if (line.status === 'variant') {
-    return [t('outline.tipVariant'), ...line.evidence.filter((e) => !ROUTINE.test(e))].join('\n')
+    return [t('outline.tipVariant'), ...items.filter((x) => !ROUTINE.has(x.code)).map(evidenceText)].join('\n')
   }
   return ''
 }
