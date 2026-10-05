@@ -1,26 +1,38 @@
-import raw from '../data/viewerModel.json'
-
-// ── 轨道取舍（决策 5：不展示临时轨与点状腔格）─────────────────────────────
-//   保留：腔格轨、动作  ；剔除：名字含「临时」的轨；点轨里剔除「点状腔格」。
-const DROP_TRACK = (name) => /临时/.test(name)
-const DROP_POINT = (tk) => /点状腔格/.test(tk)
-
-function buildModel(src) {
-  const tracks = (src.tracks || [])
-    .filter((t) => !DROP_TRACK(t.name))
-    .map((t) => ({
-      ...t,
-      points: (t.points || []).filter((p) => !DROP_POINT(p.tk)),
-    }))
-  return {
-    meta: src.meta,
-    lines: [...src.lines].sort((a, b) => a.s - b.s),
-    breaths: src.breaths || [],
-    tracks,
-  }
+// ── 数据来自后端（GET /api/pieces/{id}/phrases）──────────────────────────────
+//   断句、轨道取舍（不展示临时轨与点状腔格）都由后端计算；前端只画图和交互。
+//   model 是全应用共享的普通对象：loadModel() 取到数据后【原地填充】，
+//   所以必须在任何读 model 的模块（useClock、各组件）被 import 之前 await 它，见 main.js。
+export const model = {
+  meta: { title: '', performer: '', source: '', video: '', span: [0, 0] },
+  lines: [],      // = phrases（逗号级分句；字段与原 lines 兼容）
+  breaths: [],    // 由各句的 breaths 按时间拼回
+  tracks: [],
+  sections: [],
+  omitted: [],
+  excluded: [],
+  stats: {},
 }
 
-export const model = buildModel(raw)
+export async function loadModel(pieceId = 'xunmeng') {
+  const url = `/api/pieces/${pieceId}/phrases`
+  let res
+  try {
+    res = await fetch(url)
+  } catch {
+    throw new Error(`连不上后端（${url}）。请先运行 make up。`)
+  }
+  if (!res.ok) {
+    let detail
+    try { detail = (await res.json()).detail } catch { /* 不是 JSON：下面给出状态码 */ }
+    throw new Error(typeof detail === 'string' ? detail : `后端返回 ${res.status}（${url}）。请用 make logs 查看后端日志。`)
+  }
+  const data = await res.json()
+  Object.assign(model, data, {
+    lines: data.phrases,
+    breaths: data.phrases.flatMap((p) => p.breaths).sort((a, b) => a.t - b.t),
+  })
+  return model
+}
 
 // 给每个出现过的腔格/动作类型分配一个稳定的淡彩
 const PALETTE = ['#c98a7d', '#7da08f', '#c2a86a', '#8194ab', '#a87fa0', '#9a9270',

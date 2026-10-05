@@ -247,3 +247,16 @@ button { font-family: inherit; cursor: pointer; }
 @media (max-width: 860px) {
   .body { grid-template-columns: 1fr; grid-auto-rows: minmax(0, auto); }
 }
+
+/* 后端数据加载失败（main.js） */
+.load-error {
+  max-width: 34em;
+  margin: 18vh auto 0;
+  padding: 18px 22px;
+  border: 1px solid var(--zhu-soft);
+  border-left: 4px solid var(--zhu);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.7;
+}
