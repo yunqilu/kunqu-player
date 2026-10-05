@@ -151,3 +151,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# 视频有版权且体积大，只放本地，由后端提供（见 README）
+media/

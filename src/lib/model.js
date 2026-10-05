@@ -2,6 +2,8 @@
 //   断句、轨道取舍（不展示临时轨与点状腔格）都由后端计算；前端只画图和交互。
 //   model 是全应用共享的普通对象：loadModel() 取到数据后【原地填充】，
 //   所以必须在任何读 model 的模块（useClock、各组件）被 import 之前 await 它，见 main.js。
+import { lang, t } from '../i18n/index.js'
+
 export const model = {
   meta: { title: '', performer: '', source: '', video: '', span: [0, 0] },
   lines: [],      // = phrases（逗号级分句；字段与原 lines 兼容）
@@ -13,18 +15,28 @@ export const model = {
   stats: {},
 }
 
+// 后端的 detail 是中文。中文界面直接显示它；英文界面按状态码给英文说明，
+// 把 detail 放在 error.detail 里，由 main.js 作为次要信息显示在下面。
+function loadError(status, url, detail) {
+  if (lang.value === 'zh' && detail) return new Error(detail)
+  const key = status === 404 ? 'error.notFound' : status >= 500 ? 'error.server' : 'error.http'
+  const error = new Error(t(key, { status, url }))
+  if (lang.value !== 'zh' && detail) error.detail = detail
+  return error
+}
+
 export async function loadModel(pieceId = 'xunmeng') {
   const url = `/api/pieces/${pieceId}/phrases`
   let res
   try {
     res = await fetch(url)
   } catch {
-    throw new Error(`连不上后端（${url}）。请先运行 make up。`)
+    throw new Error(t('error.unreachable', { url }))
   }
   if (!res.ok) {
     let detail
     try { detail = (await res.json()).detail } catch { /* 不是 JSON：下面给出状态码 */ }
-    throw new Error(typeof detail === 'string' ? detail : `后端返回 ${res.status}（${url}）。请用 make logs 查看后端日志。`)
+    throw loadError(res.status, url, typeof detail === 'string' ? detail : null)
   }
   const data = await res.json()
   Object.assign(model, data, {

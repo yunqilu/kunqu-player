@@ -4,6 +4,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import projection from '../data/viewerModel.json'
 import manifest from '../data/reviews/xunmeng.review.json'
 import { createScoreReviewState } from '../composables/useScoreReview'
+import { t } from '../i18n'
+import { qupaiName } from '../i18n/qupai'
 
 const props = defineProps({ state: { type: Object, default: null } })
 const review = props.state || createScoreReviewState({ projection, manifest })
@@ -13,6 +15,11 @@ const editNote = ref('')
 
 const selectedEvent = computed(() => review.selected.value?.event || null)
 const selectedSection = computed(() => review.selected.value?.section || null)
+
+const COUNTS = ['confirmed', 'derived', 'inferred', 'unresolved']
+const STATUSES = ['all', ...COUNTS]
+const FIELDS = ['all', 'relativePitch', 'absolutePitch', 'onset', 'duration']
+const sectionName = (section) => qupaiName(section.qupai?.value || section.qupai || section.id)
 
 function select(entry) {
   review.selectedId.value = entry.id
@@ -49,35 +56,32 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
 </script>
 
 <template>
-  <section class="score-review" aria-label="五线谱审阅">
+  <section class="score-review" :aria-label="t('review.title')">
     <header class="review-head">
-      <strong>五线谱审阅</strong>
-      <span class="count confirmed">确 {{ review.counts.value.confirmed }}</span>
-      <span class="count derived">定 {{ review.counts.value.derived }}</span>
-      <span class="count inferred">推 {{ review.counts.value.inferred }}</span>
-      <span class="count unresolved">未 {{ review.counts.value.unresolved }}</span>
-      <span class="count">诊 {{ review.counts.value.diagnostics }}</span>
-      <label class="playback-toggle"><input :checked="review.playbackEnabled.value" type="checkbox" @change="review.setPlaybackEnabled($event.target.checked)" /> 播放效果</label>
+      <strong>{{ t('review.title') }}</strong>
+      <span v-for="kind in COUNTS" :key="kind" class="count" :class="kind">{{ t(`review.count.${kind}`, { n: review.counts.value[kind] }) }}</span>
+      <span class="count">{{ t('review.count.diagnostics', { n: review.counts.value.diagnostics }) }}</span>
+      <label class="playback-toggle"><input :checked="review.playbackEnabled.value" type="checkbox" @change="review.setPlaybackEnabled($event.target.checked)" /> {{ t('review.playback') }}</label>
     </header>
 
     <div class="review-tools">
-      <select v-model="review.statusFilter.value" aria-label="证据状态">
-        <option value="all">全部状态</option><option value="confirmed">人工确认</option><option value="derived">规则确定</option><option value="inferred">推定</option><option value="unresolved">未决</option>
+      <select v-model="review.statusFilter.value" :aria-label="t('review.filter.status')">
+        <option v-for="status in STATUSES" :key="status" :value="status">{{ t(`review.status.${status}`) }}</option>
       </select>
-      <select v-model="review.severityFilter.value" aria-label="诊断级别">
-        <option value="all">全部诊断</option><option value="fatal">fatal</option><option value="error">error</option><option value="warning">warning</option>
+      <select v-model="review.severityFilter.value" :aria-label="t('review.filter.severity')">
+        <option value="all">{{ t('review.severity.all') }}</option><option value="fatal">fatal</option><option value="error">error</option><option value="warning">warning</option>
       </select>
-      <select v-model="review.sectionFilter.value" aria-label="曲牌区段">
-        <option value="all">全部区段</option>
-        <option v-for="section in review.result.value.canonicalScore.sections" :key="section.id" :value="section.id">{{ section.qupai?.value || section.qupai || section.id }}</option>
+      <select v-model="review.sectionFilter.value" :aria-label="t('review.filter.section')">
+        <option value="all">{{ t('review.section.all') }}</option>
+        <option v-for="section in review.result.value.canonicalScore.sections" :key="section.id" :value="section.id">{{ sectionName(section) }}</option>
       </select>
-      <select v-model="review.fieldFilter.value" aria-label="推定字段">
-        <option value="all">全部字段</option><option value="relativePitch">相对音高</option><option value="absolutePitch">绝对音高</option><option value="onset">拍位</option><option value="duration">时值</option>
+      <select v-model="review.fieldFilter.value" :aria-label="t('review.filter.field')">
+        <option v-for="field in FIELDS" :key="field" :value="field">{{ t(`review.field.${field}`) }}</option>
       </select>
-      <input v-model="review.ruleFilter.value" aria-label="规则筛选" placeholder="规则 ID / 诊断码" />
+      <input v-model="review.ruleFilter.value" :aria-label="t('review.filter.rule')" :placeholder="t('review.rulePlaceholder')" />
       <div class="downloads">
         <button v-for="kind in ['musicXml','reviewedSource','relativeScore','canonicalScore','playbackPlan','diagnostics','reviewManifest']" :key="kind" @click="review.download(kind)">{{ kind }}</button>
-        <label class="import-button">导入 manifest<input type="file" accept="application/json" aria-label="导入校订清单" @change="importManifest" /></label>
+        <label class="import-button">{{ t('review.import') }}<input type="file" accept="application/json" :aria-label="t('review.importLabel')" @change="importManifest" /></label>
       </div>
     </div>
 
@@ -85,8 +89,8 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
       <ol class="review-list">
         <li v-for="entry in review.entries.value" :key="entry.id">
           <button :class="[entry.status, { active: review.selectedId.value === entry.id }]" @click="select(entry)">
-            <template v-if="entry.event">{{ entry.event.lyric?.text || '休' }} · {{ entry.status }} · {{ entry.ruleIds.join(', ') }}</template>
-            <template v-else-if="entry.section">区段 · {{ entry.section.qupai?.value || entry.section.qupai || entry.section.id }} · {{ entry.status }}</template>
+            <template v-if="entry.event">{{ entry.event.lyric?.text || t('review.rest') }} · {{ entry.status }} · {{ entry.ruleIds.join(', ') }}</template>
+            <template v-else-if="entry.section">{{ t('review.sectionEntry') }} · {{ sectionName(entry.section) }} · {{ entry.status }}</template>
             <template v-else>{{ entry.diagnostic.severity }} · {{ entry.diagnostic.code }}</template>
           </button>
         </li>
@@ -95,23 +99,23 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
         <template v-if="review.selected.value">
           <dl>
             <dt>ID</dt><dd>{{ review.selected.value.event?.id || review.selected.value.section?.id || review.selected.value.diagnostic?.code }}</dd>
-            <dt>原文</dt><dd>{{ review.selectedSource.value?.raw || '—' }}</dd>
-            <dt>位置</dt><dd><code>{{ JSON.stringify(review.selectedSource.value?.sourceRef || null) }}</code></dd>
-            <dt>规则</dt><dd>{{ review.selected.value.ruleIds?.join(', ') || review.selected.value.diagnostic?.suggestedAction || '—' }}</dd>
-            <dt>证据</dt><dd><code>{{ JSON.stringify(review.selectedProvenance.value?.fields || null) }}</code></dd>
-            <dt>备注</dt><dd>{{ selectedEvent?.absolutePitch?.note || selectedEvent?.onset?.note || selectedEvent?.duration?.note || '—' }}</dd>
+            <dt>{{ t('review.detail.source') }}</dt><dd>{{ review.selectedSource.value?.raw || '—' }}</dd>
+            <dt>{{ t('review.detail.position') }}</dt><dd><code>{{ JSON.stringify(review.selectedSource.value?.sourceRef || null) }}</code></dd>
+            <dt>{{ t('review.detail.rules') }}</dt><dd>{{ review.selected.value.ruleIds?.join(', ') || review.selected.value.diagnostic?.suggestedAction || '—' }}</dd>
+            <dt>{{ t('review.detail.evidence') }}</dt><dd><code>{{ JSON.stringify(review.selectedProvenance.value?.fields || null) }}</code></dd>
+            <dt>{{ t('review.detail.note') }}</dt><dd>{{ selectedEvent?.absolutePitch?.note || selectedEvent?.onset?.note || selectedEvent?.duration?.note || '—' }}</dd>
           </dl>
           <div v-if="selectedEvent || selectedSection" class="editor">
             <select v-model="editField">
               <template v-if="selectedEvent"><option value="relativePitch">relativePitch</option><option value="absolutePitch">absolutePitch</option><option value="onset">onset</option><option value="duration">duration</option></template>
               <template v-else><option value="banshi">banshi</option><option value="dise">dise</option><option value="shangPitch">shangPitch</option></template>
             </select>
-            <textarea v-model="editValue" aria-label="确认值" />
-            <input v-model="editNote" aria-label="证据备注" placeholder="证据备注" />
-            <button @click="confirm">确认并重新生成</button>
+            <textarea v-model="editValue" :aria-label="t('review.edit.value')" />
+            <input v-model="editNote" :aria-label="t('review.edit.note')" :placeholder="t('review.edit.note')" />
+            <button @click="confirm">{{ t('review.edit.confirm') }}</button>
           </div>
         </template>
-        <p v-else>选择推定项或诊断，查看 gc.raw、来源位置和规则。</p>
+        <p v-else>{{ t('review.empty') }}</p>
       </div>
     </div>
   </section>

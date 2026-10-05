@@ -11,6 +11,13 @@ try {
   const box = document.createElement('div')
   box.className = 'load-error'
   box.textContent = err.message
+  if (err.detail) {
+    const detail = document.createElement('div')
+    detail.className = 'load-error-detail'
+    detail.lang = 'zh-CN'
+    detail.textContent = err.detail
+    box.append(detail)
+  }
   root.replaceChildren(box)
   throw err
 }

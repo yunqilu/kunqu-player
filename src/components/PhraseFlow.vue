@@ -6,6 +6,8 @@ import { buildOutline } from '../lib/outline'
 import { layoutPhrase, packLines, spanX, timeToX } from '../lib/flowLayout'
 import { TRACKS, loadTrackPrefs, saveTrackPrefs } from '../lib/flowPrefs'
 import { toRenderNotes, beatClass, ORN_LABEL } from '../lib/gongche'
+import { lang, t } from '../i18n'
+import { styleLabel, termFull, termShort } from '../i18n/terms'
 
 // ── 时长排版视图 ─────────────────────────────────────────────────────────────
 //   一个分句一行；行内一律以时间定位（见 lib/flowLayout.js）。
@@ -13,7 +15,7 @@ import { toRenderNotes, beatClass, ORN_LABEL } from '../lib/gongche'
 //   播放过程中不触发本组件重渲染（它有几千个节点）。
 const { activeLineIdx, activeCharIdx } = clock
 
-const GUTTER = 76   // 行首标注栏
+const GUTTER = 84   // 行首标注栏（要放得下拼音曲牌名，如 Jiāng Ér Shuǐ）
 const SLACK = 22    // 行尾留白 + 滚动条
 const BLOCK_MIN = 8 // 块的最小可点宽度
 const NOTE_H = 19   // 工尺一排的高度
@@ -34,16 +36,16 @@ function measure() {
 }
 
 // —— 每行的渲染模型 ——
-const sectionLabel = new Map(buildOutline(model).map((g) => [g.items[0].index, g.label]))
+const sectionLabel = computed(() => new Map(buildOutline(model).map((g) => [g.items[0].index, g])))
 
 function charTitle(c, lyric) {
-  if (c.src === 'variant') return `演出「${c.ch}」，歌词作「${lyric}」`
-  if (c.src === 'attached') return `「${c.ch}」不在歌词中（衬字）`
-  return `${c.ch} · ${c.st}`
+  if (c.src === 'variant') return t('flow.charVariant', { ch: c.ch, lyric })
+  if (c.src === 'attached') return t('flow.charAttached', { ch: c.ch })
+  return t('flow.charPlain', { ch: c.ch, style: styleLabel(c.st) })
 }
 function noteTitle(sym) {
-  const orn = [...(sym.o || '')].map((o) => ORN_LABEL[o] || o).join('·')
-  return [sym.raw, orn, sym.q ? '气口' : ''].filter(Boolean).join(' ')
+  const orn = [...(sym.o || '')].map((o) => (ORN_LABEL[o] ? termShort(ORN_LABEL[o]) : o)).join('·')
+  return [sym.raw, orn, sym.q ? termShort('气口') : ''].filter(Boolean).join(' ')
 }
 
 const rows = computed(() => model.lines.map((p, i) => {
@@ -53,6 +55,9 @@ const rows = computed(() => model.lines.map((p, i) => {
   const lyricOf = new Map(p.variants.map((v) => [v.i, v.lyric]))
   const charSeg = L.segments.filter((g) => g.kind === 'char')
   const block = (b) => ({ ...b, ...spanX(L, b.cs, b.ce, BLOCK_MIN), color: colorOf(b.t) })
+  // 腔格名随界面语言显示；动作名始终是中文
+  const term = (b) => ({ ...block(b), label: termShort(b.t), title: termFull(b.t) })
+  const head = sectionLabel.value.get(i)
   const point = (q) => ({ ...q, x: X(q.t) })
   const notes = p.chars.flatMap((c) => c.gc.map((sym) => {
     const glyphs = toRenderNotes([sym])
@@ -63,21 +68,28 @@ const rows = computed(() => model.lines.map((p, i) => {
   const noteLines = packLines(notes)   // 长腔里挤在一起的音错开到下一排
   return {
     p, i, L, notes, noteLines,
-    label: sectionLabel.get(i) ?? '',
+    label: head?.label ?? '',
+    labelTip: head?.labelTip || undefined,
     chars: p.chars.map((c, ci) => ({
       ci, ch: c.ch, s: c.s, src: c.src, nb: c.st === '念白式',
       x: charSeg[ci].x0, w: charSeg[ci].x1 - charSeg[ci].x0,
       title: charTitle(c, lyricOf.get(c.i)),
     })),
-    qiangge: p.qiangge.map(block),
-    qpoints: p.points.filter((q) => q.provisional).map(point),   // 来自临时腔格轨
+    qiangge: p.qiangge.map(term),
+    // 来自临时腔格轨
+    qpoints: p.points.filter((q) => q.provisional).map((q) => ({ ...point(q), title: t('flow.provisional', { label: termFull(q.l) }) })),
     actions: p.actions.map(block),
     apoints: p.points.filter((q) => !q.provisional).map(point),
     breaths: p.breaths.map(point),
     // 被排除的字：原来占的时间显示为空白
     gone: model.excluded
       .filter((g) => g.s >= p.s && (!next || g.s < next.s))
-      .map((g) => ({ ...g, ...spanX(L, g.s, g.e, BLOCK_MIN) })),
+      .map((g) => ({
+        ...g, ...spanX(L, g.s, g.e, BLOCK_MIN),
+        title: t('flow.excluded', {
+          ch: g.ch, from: fmt(g.s), to: fmt(g.e), reason: lang.value === 'zh' ? g.reason : g.reason_en ?? g.reason,
+        }),
+      })),
   }
 }))
 
@@ -132,11 +144,11 @@ onUnmounted(() => { unsub?.(); observer?.disconnect() })
 <template>
   <div class="flow">
     <div class="flow-hd">
-      <h3>时长排版</h3>
-      <span class="hint">一句一行 · 字宽随时长 · 点任意单元跳转</span>
+      <h3>{{ t('flow.title') }}</h3>
+      <span class="hint">{{ t('flow.hint') }}</span>
       <div class="tgs">
-        <label v-for="t in TRACKS" :key="t.key" class="tg">
-          <input type="checkbox" :data-track="t.key" v-model="show[t.key]" />{{ t.label }}
+        <label v-for="tk in TRACKS" :key="tk.key" class="tg">
+          <input type="checkbox" :data-track="tk.key" v-model="show[tk.key]" />{{ t(`track.${tk.key}`) }}
         </label>
       </div>
     </div>
@@ -146,7 +158,7 @@ onUnmounted(() => { unsub?.(); observer?.disconnect() })
         v-for="r in rows" :key="r.p.id" class="row" :class="r.p.status" :data-i="r.i"
         :ref="(el) => { rowEls[r.i] = el }">
         <div class="row-lb" :style="{ width: GUTTER + 'px' }">
-          <span class="row-nm" :class="{ bai: r.p.kind === '白' }">{{ r.label }}</span>
+          <span class="row-nm" :class="{ bai: r.p.kind === '白' }" :title="r.labelTip">{{ r.label }}</span>
           <span class="row-t">{{ fmt(r.p.s) }}</span>
         </div>
 
@@ -162,7 +174,7 @@ onUnmounted(() => { unsub?.(); observer?.disconnect() })
             <span
               v-for="g in r.gone" :key="'x' + g.s" class="gone"
               :style="{ left: g.x + 'px', width: g.w + 'px' }"
-              :title="`已排除的「${g.ch}」（${fmt(g.s)}–${fmt(g.e)}）：${g.reason}`"></span>
+              :title="g.title"></span>
           </div>
 
           <!-- 工尺 -->
@@ -186,18 +198,18 @@ onUnmounted(() => { unsub?.(); observer?.disconnect() })
           <div v-if="show.qiangge && (r.qiangge.length || r.qpoints.length)" class="lane qg">
             <button
               v-for="(b, bi) in r.qiangge" :key="bi" class="blk qg-b" :class="{ cp: b.cont_prev, cn: b.cont_next }"
-              :style="{ left: b.x + 'px', width: b.w + 'px', background: b.color }" :title="b.t"
-              @click="clock.seek(b.s)">{{ b.t }}</button>
+              :style="{ left: b.x + 'px', width: b.w + 'px', background: b.color }" :title="b.title"
+              @click="clock.seek(b.s)">{{ b.label }}</button>
             <button
               v-for="(q, qi) in r.qpoints" :key="'p' + qi" class="pt provisional"
-              :style="{ left: q.x + 'px' }" :title="`${q.l}（临时轨）`" @click="clock.seek(q.t)"></button>
+              :style="{ left: q.x + 'px' }" :title="q.title" @click="clock.seek(q.t)"></button>
           </div>
 
           <!-- 呼吸 -->
           <div v-if="show.breath && r.breaths.length" class="lane br">
             <button
               v-for="(q, qi) in r.breaths" :key="qi" class="bp"
-              :style="{ left: q.x + 'px' }" :title="`呼吸 ${fmt(q.t)}`" @click="clock.seek(q.t)"></button>
+              :style="{ left: q.x + 'px' }" :title="t('flow.breathAt', { time: fmt(q.t) })" @click="clock.seek(q.t)"></button>
           </div>
 
           <!-- 动作 -->
@@ -206,7 +218,7 @@ onUnmounted(() => { unsub?.(); observer?.disconnect() })
               v-for="(b, bi) in r.actions" :key="bi" class="blk ac-b"
               :class="{ cp: b.cont_prev, cn: b.cont_next, provisional: b.provisional }"
               :style="{ left: b.x + 'px', width: b.w + 'px', background: b.color }"
-              :title="b.provisional ? `${b.t}（临时轨）` : b.t"
+              :title="b.provisional ? t('flow.provisional', { label: b.t }) : b.t"
               @click="clock.seek(b.s)">{{ b.t }}</button>
             <button
               v-for="(q, qi) in r.apoints" :key="'p' + qi" class="pt"
