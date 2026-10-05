@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { buildOutline } from '../../src/lib/outline.js'
+import { setLang } from '../../src/i18n/index.js'
 import { outlineModel } from './outline.fixture.js'
 
 describe('buildOutline', () => {
+  setLang('zh', null) // 这一组检查中文界面的标签和提示；英文见文件末尾
   const outline = buildOutline(outlineModel())
 
   it('makes one group per section, labelled by qupai or kind', () => {
@@ -44,5 +46,25 @@ describe('buildOutline', () => {
     broken.sections[0].phrase_ids.push('p999')
 
     expect(() => buildOutline(broken)).toThrow(/p999/)
+  })
+})
+
+describe('buildOutline in English', () => {
+  setLang('en', null)
+  const outline = buildOutline(outlineModel())
+  setLang('zh', null)
+
+  it('labels sections with toned pinyin or Sung / Spoken', () => {
+    expect(outline.map((g) => g.label)).toEqual(['Lǎn Huà Méi', 'Spoken', 'Sung'])
+  })
+
+  it('explains qupai on hover, and only on qupai headings', () => {
+    expect(outline.map((g) => g.labelTip)).toEqual(['qupai — a named tune pattern', '', ''])
+  })
+
+  it('introduces the evidence in English and keeps the lyrics Chinese', () => {
+    expect(outline[2].items[0].tip.split('\n')[0]).toBe('Inferred phrase break. Evidence:')
+    expect(outline[0].items[1].tip.split('\n')[0]).toBe('Differs from the libretto:')
+    expect(outline[0].items[0].text).toBe('一径行来')
   })
 })

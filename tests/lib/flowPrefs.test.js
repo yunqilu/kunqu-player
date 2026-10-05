@@ -17,9 +17,7 @@ const ALL_ON = { gongche: true, qiangge: true, breath: true, action: true }
 
 describe('track preferences', () => {
   it('lists the four toggleable tracks in display order', () => {
-    expect(TRACKS.map((t) => [t.key, t.label])).toEqual([
-      ['gongche', '工尺'], ['qiangge', '腔格'], ['breath', '呼吸'], ['action', '动作'],
-    ])
+    expect(TRACKS.map((t) => t.key)).toEqual(['gongche', 'qiangge', 'breath', 'action'])
   })
 
   it('shows every track by default', () => {

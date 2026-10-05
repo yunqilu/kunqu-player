@@ -2,7 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { model } from '../lib/model'
 import { clock } from '../composables/useClock'
-import { toRenderNotes, beatClass, markAdjacentDieqiang, ORN_LABEL } from '../lib/gongche'
+import { toRenderNotes, beatClass, markAdjacentDieqiang } from '../lib/gongche'
+import { t } from '../i18n'
+import { isMovementTrack, termFull, termShort } from '../i18n/terms'
 
 const { activeLineIdx, activeCharIdx, activeSymIdx, activeAttrs, breathPulse } = clock
 
@@ -39,7 +41,9 @@ watch(breathPulse, () => {
   clearTimeout(bt); bt = setTimeout(() => (breathing.value = false), 650)
 })
 
-const ornText = (o) => [...o].map((c) => ORN_LABEL[c] || c).join('·')
+// 此刻的腔格随界面语言显示；动作名始终是中文
+const attrLabel = (a) => (isMovementTrack(a.track) ? a.type : termShort(a.type))
+const attrTitle = (a) => (isMovementTrack(a.track) ? a.type : termFull(a.type))
 </script>
 
 <template>
@@ -50,11 +54,11 @@ const ornText = (o) => [...o].map((c) => ORN_LABEL[c] || c).join('·')
       <span class="spacer"></span>
       <div class="nowbar">
         <transition-group name="pop">
-          <span v-for="a in activeAttrs" :key="a.track + a.type" class="attr" :style="{ '--c': a.color }">
-            {{ a.type }}
+          <span v-for="a in activeAttrs" :key="a.track + a.type" class="attr" :style="{ '--c': a.color }" :title="attrTitle(a)">
+            {{ attrLabel(a) }}
           </span>
         </transition-group>
-        <span class="breath" :class="{ on: breathing }">⌇ 呼吸</span>
+        <span class="breath" :class="{ on: breathing }">{{ t('reader.breath') }}</span>
       </div>
     </div>
 
@@ -65,7 +69,7 @@ const ornText = (o) => [...o].map((c) => ORN_LABEL[c] || c).join('·')
           v-for="(c, ci) in curLine.chars" :key="ci"
           class="word" :class="{ active: ci === activeCharIdx, nianbai: c.nb }">
           <span class="lyric">{{ c.ch }}</span>
-          <span v-if="c.nb" class="bai">白</span>
+          <span v-if="c.nb" class="bai">{{ t('reader.spoken') }}</span>
           <span v-else-if="c.notes.length" class="gongche-wrap">
             <span class="gongche-cell gongche-reader-redmark">
               <span
@@ -95,7 +99,7 @@ const ornText = (o) => [...o].map((c) => ORN_LABEL[c] || c).join('·')
           </span>
         </span>
       </template>
-      <span v-else class="prelude">（前奏 · 过门）</span>
+      <span v-else class="prelude">{{ t('reader.prelude') }}</span>
     </div>
 
     <!-- 底栏：后句提示 -->

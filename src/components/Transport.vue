@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { clock } from '../composables/useClock'
+import { t } from '../i18n'
 
 const props = defineProps({ showTimeline: Boolean })
 const emit = defineEmits(['toggle-timeline'])
@@ -38,9 +39,9 @@ const onUp = () => { dragging = false; window.removeEventListener('mousemove', o
 
 <template>
   <div class="transport">
-    <button class="tb" title="后退 5 秒" @click="clock.seek(clock.getTime() - 5)">⟲</button>
-    <button class="tb play" :title="'播放/暂停 (空格)'" @click="clock.togglePlay()">{{ playing ? '❚❚' : '▶' }}</button>
-    <button class="tb" title="前进 5 秒" @click="clock.seek(clock.getTime() + 5)">⟳</button>
+    <button class="tb" :title="t('transport.back5')" @click="clock.seek(clock.getTime() - 5)">⟲</button>
+    <button class="tb play" :title="t('transport.playPause')" @click="clock.togglePlay()">{{ playing ? '❚❚' : '▶' }}</button>
+    <button class="tb" :title="t('transport.forward5')" @click="clock.seek(clock.getTime() + 5)">⟳</button>
 
     <div class="seek" ref="seekEl" @mousedown="onDown">
       <div class="prog" ref="progEl"></div>
@@ -51,8 +52,8 @@ const onUp = () => { dragging = false; window.removeEventListener('mousemove', o
     <div class="rate">
       <button v-for="r in rates" :key="r" :class="{ on: r === rate }" @click="clock.setRate(r)">{{ r }}×</button>
     </div>
-    <label class="tg"><input type="checkbox" v-model="loopLine" /> 循环本句</label>
-    <label class="tg"><input type="checkbox" :checked="showTimeline" @change="emit('toggle-timeline')" /> 时间轴</label>
+    <label class="tg"><input type="checkbox" v-model="loopLine" /> {{ t('transport.loop') }}</label>
+    <label class="tg"><input type="checkbox" :checked="showTimeline" @change="emit('toggle-timeline')" /> {{ t('transport.timeline') }}</label>
   </div>
 </template>
 

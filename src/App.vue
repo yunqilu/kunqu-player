@@ -9,14 +9,9 @@ import ScoreReviewPanel from './components/ScoreReviewPanel.vue'
 import { clock } from './composables/useClock'
 import { model } from './lib/model'
 import { probeVideo } from './lib/video'
+import { lang, setLang, t } from './i18n'
 
-// E1 新增的英文文案先集中在这里；E2 建好 i18n 模块后搬进 src/i18n/{en,zh}.js
-const TEXT = {
-  loading: 'Loading video…',
-  missing: 'No video found at media/xunmeng.mp4. Put the file there and reload, or load one from a URL or a local file.',
-  failed: 'This video could not be played. Try another URL or a local file.',
-  change: 'Change video',
-}
+const LANGS = [{ code: 'zh', label: '中' }, { code: 'en', label: 'EN' }]
 
 const videoEl = ref(null)
 const urlInput = ref('')
@@ -75,17 +70,22 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
 <template>
   <div class="app">
     <header class="hd">
-      <span class="seal">寻夢</span>
+      <span class="seal" role="img" :aria-label="t('header.seal')">寻夢</span>
       <div class="ttls">
-        <div class="t1">{{ model.meta.title }}</div>
-        <div class="t2">{{ model.meta.performer }}　{{ model.meta.source }}　声腔标注 · {{ model.lines.length }} 句</div>
+        <div class="t1">{{ t('header.title') }}</div>
+        <div class="t2">{{ t('header.subtitle', { performer: model.meta.performer, source: model.meta.source, n: model.lines.length }) }}</div>
       </div>
       <div class="spacer"></div>
-      <button v-if="!showSource" class="go" @click="showSource = true">{{ TEXT.change }}</button>
+      <button v-if="!showSource" class="go" @click="showSource = true">{{ t('header.changeVideo') }}</button>
       <div v-else class="vsrc">
-        <input v-model="urlInput" class="url" placeholder="视频直链 URL（https://…/寻梦.mp4）" @keyup.enter="loadUrl" />
-        <button class="go" @click="loadUrl">载入</button>
-        <label class="file">本地<input type="file" accept="video/*" @change="onFile" hidden /></label>
+        <input v-model="urlInput" class="url" :placeholder="t('header.urlPlaceholder')" @keyup.enter="loadUrl" />
+        <button class="go" @click="loadUrl">{{ t('header.load') }}</button>
+        <label class="file">{{ t('header.localFile') }}<input type="file" accept="video/*" @change="onFile" hidden /></label>
+      </div>
+      <div class="langs" role="group" :aria-label="t('header.language')">
+        <button
+          v-for="l in LANGS" :key="l.code" class="lang" :class="{ on: lang === l.code }"
+          :data-lang="l.code" :aria-pressed="lang === l.code" @click="setLang(l.code)">{{ l.label }}</button>
       </div>
     </header>
 
@@ -97,14 +97,13 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
             <video ref="videoEl" playsinline @error="onVideoError"></video>
             <div v-if="!hasVideo" class="novideo">
               <div class="play-ic">▶</div>
-              <div v-if="videoState === 'probing' || videoState === 'loading'">{{ TEXT.loading }}</div>
+              <div v-if="videoState === 'probing' || videoState === 'loading'">{{ t('video.loading') }}</div>
               <template v-else>
-                <div class="hint">{{ videoState === 'failed' ? TEXT.failed : TEXT.missing }}</div>
-                <div>未载入视频 — 输入直链或选本地文件</div>
-                <div class="sm">未载入时仍可按 ▶ / 空格 用「虚拟时间轴」预览同步</div>
+                <div class="hint">{{ t(videoState === 'failed' ? 'video.failed' : 'video.missing') }}</div>
+                <div class="sm">{{ t('video.virtual') }}</div>
               </template>
             </div>
-            <div v-else-if="videoState === 'failed'" class="vfail">{{ TEXT.failed }}</div>
+            <div v-else-if="videoState === 'failed'" class="vfail">{{ t('video.failed') }}</div>
           </div>
           <ReaderView />
         </div>
@@ -115,7 +114,7 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
       </div>
     </div>
     <details class="review-drawer">
-      <summary>五线谱审阅</summary>
+      <summary>{{ t('review.drawer') }}</summary>
       <ScoreReviewPanel />
     </details>
   </div>
@@ -134,6 +133,11 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
 .go, .file { font-size: 12.5px; border: 1px solid var(--line); background: #fbf7ef; padding: 6px 12px; border-radius: 18px; color: var(--ink-soft); }
 .go:hover, .file:hover { border-color: var(--zhu); color: var(--zhu); }
 .file { cursor: pointer; }
+.langs { display: flex; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; flex: 0 0 auto; }
+.lang { font-size: 12.5px; border: none; background: #fbf7ef; padding: 6px 11px; color: var(--ink-soft); }
+.lang + .lang { border-left: 1px solid var(--line); }
+.lang:hover { color: var(--zhu); }
+.lang.on { background: var(--zhu); color: #f7efe2; }
 
 .stage { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; height: 40vh; }
 @media (max-width: 860px) { .stage { grid-template-columns: 1fr; } }

@@ -1,13 +1,21 @@
 <script setup>
-import { ref, watch, nextTick } from 'vue'
-import { PLAY_INFO } from '../data/meta'
+import { computed, ref, watch, nextTick } from 'vue'
+import { playInfo } from '../data/meta'
+import { t } from '../i18n'
 import { model } from '../lib/model'
 import { buildOutline } from '../lib/outline'
 import { clock } from '../composables/useClock'
 
 const railEl = ref(null)
 const { activeLineIdx } = clock
-const outline = buildOutline(model)
+const outline = computed(() => buildOutline(model))
+const info = computed(playInfo)
+
+const countText = (g) =>
+  t(g.count === 1 ? 'left.phraseOne' : 'left.phraseMany', { n: g.count }) +
+  (g.inferred ? t('left.inferredCount', { n: g.inferred }) : '')
+const itemTitle = (x) =>
+  [`${fmt(x.s)} ${x.text}`, t(`status.${x.status}`), x.tip].filter(Boolean).join('\n')
 
 const fmt = (s) => { s = Math.max(0, s || 0); const m = (s / 60) | 0, x = (s % 60) | 0; return `${m}:${String(x).padStart(2, '0')}` }
 
@@ -23,32 +31,32 @@ watch(activeLineIdx, async (i) => {
 <template>
   <aside class="left">
     <section class="intro">
-      <h2 class="ttl">{{ PLAY_INFO.title }}</h2>
-      <div class="sub">{{ PLAY_INFO.subtitle }}</div>
+      <h2 class="ttl">{{ info.title }}</h2>
+      <div class="sub">{{ info.subtitle }}</div>
       <dl class="facts">
-        <template v-for="f in PLAY_INFO.fields" :key="f.k">
+        <template v-for="f in info.fields" :key="f.k">
           <dt>{{ f.k }}</dt><dd>{{ f.v }}</dd>
         </template>
       </dl>
-      <p class="syn">{{ PLAY_INFO.synopsis }}</p>
+      <p class="syn">{{ info.synopsis }}</p>
     </section>
 
     <section class="rail-wrap">
-      <div class="rail-hd">曲牌 · 分句 · 点击跳转</div>
+      <div class="rail-hd">{{ t('left.outlineTitle') }}</div>
       <div class="rail" ref="railEl">
         <section v-for="g in outline" :key="g.key" class="sec">
           <h3 class="sec-hd">
-            <span class="sec-nm" :class="{ bai: g.kind === '白' }">{{ g.label }}</span>
-            <span class="sec-ct">{{ g.count }} 句<template v-if="g.inferred"> · 推定 {{ g.inferred }}</template></span>
+            <span class="sec-nm" :class="{ bai: g.kind === '白' }" :title="g.labelTip || undefined">{{ g.label }}</span>
+            <span class="sec-ct">{{ countText(g) }}</span>
           </h3>
           <button
             v-for="x in g.items" :key="x.id" :data-i="x.index"
             class="rail-item" :class="[x.status, { on: x.index === activeLineIdx }]"
             @click="clock.seek(x.s)"
-            :title="x.tip ? `${fmt(x.s)} ${x.text}\n${x.tip}` : `${fmt(x.s)} ${x.text}`">
+            :title="itemTitle(x)">
             <span class="rt">{{ fmt(x.s) }}</span>
             <span class="rx">{{ x.text }}</span>
-            <span v-if="x.status === 'variant'" class="mark">异</span>
+            <span v-if="x.status === 'variant'" class="mark">{{ t('left.variantMark') }}</span>
           </button>
         </section>
       </div>

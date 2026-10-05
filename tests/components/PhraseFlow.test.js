@@ -56,10 +56,11 @@ const flowModel = () => {
   }
 }
 
-let PhraseFlow, clock, wrapper
+let PhraseFlow, clock, wrapper, i18n
 
 beforeAll(async () => {
   Element.prototype.scrollIntoView = vi.fn()
+  i18n = await import('../../src/i18n/index.js')
   const { model } = await import('../../src/lib/model.js')
   Object.assign(model, flowModel())
   clock = (await import('../../src/composables/useClock.js')).clock
@@ -68,6 +69,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   localStorage.clear()
+  i18n.setLang('zh', null) // 默认按中文界面断言；英文见最后一组
   clock.seek(10)
   wrapper = mount(PhraseFlow, { attachTo: document.body })
 })
@@ -233,5 +235,41 @@ describe('PhraseFlow playback position', () => {
 
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
     expect(Element.prototype.scrollIntoView.mock.contexts.at(-1)).toBe(row(2).element)
+  })
+})
+
+describe('PhraseFlow in English', () => {
+  beforeEach(async () => {
+    i18n.setLang('en', null)
+    await nextTick()
+  })
+
+  it('translates the heading, the hint and the track toggles', () => {
+    expect(wrapper.find('.flow-hd h3').text()).toBe('Duration layout')
+    expect(wrapper.findAll('.tg').map((w) => w.text())).toEqual(['Gongche', 'Ornaments', 'Breath', 'Movement'])
+  })
+
+  it('labels rows with pinyin qupai or Sung / Spoken', () => {
+    expect(wrapper.findAll('.row').map((r) => r.find('.row-nm').text())).toEqual(['Lǎn Huà Méi', '', 'Spoken', 'Sung'])
+  })
+
+  it('shows ornaments as pinyin with an English gloss on hover', () => {
+    const block = row(0).find('.qg-b')
+
+    expect(block.text()).toBe('sǒu-qiāng')
+    expect(block.attributes('title')).toBe('sǒu-qiāng (tremolo ornament)')
+    expect(row(0).find('.lane.qg .pt').attributes('title')).toBe('dǎ-yīn (tapped grace note) (provisional track)')
+  })
+
+  it('keeps lyrics, movement blocks and movement points in Chinese', () => {
+    expect(row(0).findAll('.ch').map((c) => c.text()).join('')).toBe('但觉思情')
+    expect(row(0).findAll('.ac-b').map((a) => a.text())).toEqual(['指', '换边'])
+    expect(row(0).find('.lane.ac .pt').attributes('title')).toBe('相')
+  })
+
+  it('explains variant and padding characters in English', () => {
+    expect(char(0, '思').attributes('title')).toBe('Performed "思"; the libretto has "情"')
+    expect(char(1, '啊').attributes('title')).toBe('"啊" is not in the libretto (padding syllable)')
+    expect(char(0, '但').attributes('title')).toBe('但 · sung')
   })
 })

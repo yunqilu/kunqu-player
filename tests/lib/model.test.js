@@ -27,9 +27,11 @@ const respond = (status, body) => ({
   },
 })
 
-let lib
+let lib, i18n
 beforeEach(async () => {
   vi.resetModules()
+  i18n = await import('../../src/i18n/index.js')
+  i18n.setLang('zh', null) // 默认按中文界面断言
   lib = await import('../../src/lib/model.js')
 })
 afterEach(() => vi.unstubAllGlobals())
@@ -104,5 +106,15 @@ describe('loadModel', () => {
     vi.stubGlobal('fetch', async () => { throw new TypeError('Failed to fetch') })
 
     await expect(lib.loadModel()).rejects.toThrow(/连不上后端.*make up/)
+  })
+
+  it('explains errors in English and keeps the backend detail as secondary text', async () => {
+    i18n.setLang('en', null)
+    vi.stubGlobal('fetch', async () => respond(404, { detail: '没有曲目「nope」；可用的曲目：xunmeng' }))
+
+    const error = await lib.loadModel('nope').catch((e) => e)
+
+    expect(error.message).toBe('The backend has no such piece (/api/pieces/nope/phrases).')
+    expect(error.detail).toBe('没有曲目「nope」；可用的曲目：xunmeng')
   })
 })

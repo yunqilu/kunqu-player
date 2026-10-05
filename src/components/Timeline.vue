@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { model, colorOf } from '../lib/model'
 import { clock } from '../composables/useClock'
+import { t } from '../i18n'
+import { isMovementTrack, styleLabel, termFull, termShort, trackLabel } from '../i18n/terms'
 
 const { activeLineIdx, activeCharIdx, playing } = clock
 const [t0, t1] = clock.span
@@ -12,6 +14,10 @@ const pps = computed(() => BASE_PPS * zoom.value)
 const innerW = computed(() => LABEL_W + (t1 - t0) * pps.value + 40)
 const X = (t) => LABEL_W + (t - t0) * pps.value
 const W = (a, b) => Math.max(7, (b - a) * pps.value)
+// 腔格名随界面语言显示；动作轨的块和点始终是中文
+const blockLabel = (tk, b) => (isMovementTrack(tk.name) ? b.t : termShort(b.t))
+const blockTitle = (tk, b) => (isMovementTrack(tk.name) ? b.t : termFull(b.t))
+const pointTitle = (tk, p) => (isMovementTrack(tk.name) ? p.l : termFull(p.l))
 const fmt = (s) => { s = Math.max(0, s || 0); const m = (s / 60) | 0, x = (s % 60) | 0; return `${m}:${String(x).padStart(2, '0')}` }
 
 const ticks = computed(() => {
@@ -52,9 +58,9 @@ const onDblTrack = (e) => {
 <template>
   <div class="tl">
     <div class="tl-hd">
-      <h3>多轨时间轴（只读）</h3>
-      <div class="zoom">缩放<button @click="zoomOut">−</button><button @click="zoomIn">＋</button></div>
-      <span class="hint">点击区块 / 打点跳转 · 双击空白处定位</span>
+      <h3>{{ t('timeline.title') }}</h3>
+      <div class="zoom">{{ t('timeline.zoom') }}<button @click="zoomOut">−</button><button @click="zoomIn">＋</button></div>
+      <span class="hint">{{ t('timeline.hint') }}</span>
     </div>
 
     <div class="tl-scroll" ref="scrollEl">
@@ -66,31 +72,31 @@ const onDblTrack = (e) => {
 
         <!-- 字轨 -->
         <div class="lane" style="--h:26px">
-          <span class="lbl">字</span>
+          <span class="lbl">{{ t('timeline.textLane') }}</span>
           <template v-for="(l, li) in model.lines" :key="l.id">
             <div
               v-for="(c, ci) in l.chars" :key="ci"
               class="blk char" :class="{ nianbai: c.st === '念白式', active: li === activeLineIdx && ci === activeCharIdx }"
               :style="{ left: X(c.s) + 'px', width: W(c.s, c.e) + 'px' }"
-              :data-seek="c.s" :title="`${c.ch} · ${c.st}`" @click="clock.seek(c.s)">{{ c.ch }}</div>
+              :data-seek="c.s" :title="t('flow.charPlain', { ch: c.ch, style: styleLabel(c.st) })" @click="clock.seek(c.s)">{{ c.ch }}</div>
           </template>
         </div>
 
         <!-- 呼吸轨 -->
         <div class="lane pts" style="--h:18px">
-          <span class="lbl">呼吸</span>
+          <span class="lbl">{{ t('track.breath') }}</span>
           <div v-for="(p, i) in model.breaths" :key="i" class="pt" :style="{ left: X(p.t) + 'px' }"
-            :data-seek="p.t" :title="`呼吸 ${fmt(p.t)}`" @click="clock.seek(p.t)"><i class="dot breath"></i></div>
+            :data-seek="p.t" :title="t('flow.breathAt', { time: fmt(p.t) })" @click="clock.seek(p.t)"><i class="dot breath"></i></div>
         </div>
 
         <!-- 腔格轨 / 动作轨（保留的自定义轨）-->
         <div v-for="tk in model.tracks" :key="tk.id" class="lane" style="--h:26px">
-          <span class="lbl">{{ tk.name }}</span>
+          <span class="lbl">{{ trackLabel(tk.name) }}</span>
           <div v-for="(b, i) in tk.blocks" :key="'b' + i" class="blk attr"
             :style="{ left: X(b.s) + 'px', width: W(b.s, b.e) + 'px', background: colorOf(b.t) }"
-            :data-seek="b.s" :title="b.t" @click="clock.seek(b.s)">{{ b.t }}</div>
+            :data-seek="b.s" :title="blockTitle(tk, b)" @click="clock.seek(b.s)">{{ blockLabel(tk, b) }}</div>
           <div v-for="(p, i) in tk.points" :key="'p' + i" class="pt" :style="{ left: X(p.t) + 'px' }"
-            :data-seek="p.t" :title="p.l" @click="clock.seek(p.t)"><i class="dot act"></i></div>
+            :data-seek="p.t" :title="pointTitle(tk, p)" @click="clock.seek(p.t)"><i class="dot act"></i></div>
         </div>
 
         <div class="playhead" ref="playheadEl"></div>
