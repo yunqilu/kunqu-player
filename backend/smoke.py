@@ -21,4 +21,9 @@ def get(path: str, attempts: int = 30):
 
 health = get("/api/health")
 assert health == {"ok": True}, health
-print("smoke ok")
+
+body = get("/api/pieces/xunmeng/phrases")
+assert body["stats"]["chars"] == 426, body["stats"]
+assert body["stats"]["excluded"] == 1, body["stats"]
+assert body["phrases"][0]["text"] == "一径行来", body["phrases"][0]["text"]
+print("smoke ok:", json.dumps(body["stats"], ensure_ascii=False))
