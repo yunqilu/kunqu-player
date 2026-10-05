@@ -15,6 +15,7 @@ from pathlib import Path
 from app.evidence import item as evidence_item
 from app.evidence import render as render_evidence
 from app.evidence import seconds
+from app.translations import attach_translations
 
 PUNCTUATION = "，。！？；、："
 
@@ -69,6 +70,7 @@ PIECES = {
         "model": "src/data/viewerModel.json",
         "lyrics": "data/raw/xunmeng-lyrics.txt",
         "overrides": "data/review/phrasing-overrides.json",
+        "translations": "data/translations/xunmeng.en.json",
         "video": "xunmeng.mp4",  # 相对 MEDIA_DIR，见 app/media.py
     },
 }
@@ -80,6 +82,7 @@ def load_inputs(piece_id: str) -> dict:
         "model": json.loads((REPO / paths["model"]).read_text(encoding="utf-8")),
         "lyrics": (REPO / paths["lyrics"]).read_text(encoding="utf-8"),
         "overrides": json.loads((REPO / paths["overrides"]).read_text(encoding="utf-8")),
+        "translations": json.loads((REPO / paths["translations"]).read_text(encoding="utf-8")),
     }
 
 
@@ -448,7 +451,7 @@ def build_sections(phrases: list[dict]) -> list[dict]:
     return sections
 
 
-def build_phrase_model(model: dict, lyrics: str, overrides: dict) -> dict:
+def build_phrase_model(model: dict, lyrics: str, overrides: dict, translations: dict | None = None) -> dict:
     clauses = parse_lyrics(lyrics)
     source = flatten_chars(model)
     chars, excluded = apply_excludes(source, overrides.get("exclude", []))
@@ -459,6 +462,7 @@ def build_phrase_model(model: dict, lyrics: str, overrides: dict) -> dict:
     )
     phrases = [{"id": f"p{n + 1:03d}", "index": n, **p} for n, p in enumerate(phrases)]
     attach_tracks(phrases, model)
+    attach_translations(phrases, translations)
 
     count = Counter(p["status"] for p in phrases)
     return {
@@ -476,6 +480,8 @@ def build_phrase_model(model: dict, lyrics: str, overrides: dict) -> dict:
             "confirmed": count["confirmed"],
             "variant": count["variant"],
             "inferred": count["inferred"],
+            "translated": sum(p["en"] is not None for p in phrases),
+            "reviewed": sum(p["en_status"] == "reviewed" for p in phrases),
         },
     }
 
@@ -494,6 +500,10 @@ if __name__ == "__main__":
         for phrase_id in section["phrase_ids"]:
             p = by_id[phrase_id]
             print(f"  {p['id']} {p['s']:8.2f}–{p['e']:8.2f} {p['status']:9} {p['text']}")
+            mark = "" if p["en_status"] == "reviewed" else f"  [{p['en_status'] or '未翻译'}]"
+            print(f"{'':35}EN {p['en'] or '—'}{mark}")
+            if p["en_note"]:
+                print(f"{'':35}   note: {p['en_note']}")
             for line in p["evidence"]:
                 print(f"{'':35}· {line}")
     print("\nomitted:", json.dumps(built["omitted"], ensure_ascii=False, indent=1))

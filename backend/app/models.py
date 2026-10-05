@@ -96,6 +96,9 @@ class Phrase(Strict):
     actions: list[ActionBlock]
     points: list[Point]
     breaths: list[Breath]
+    en: str | None  # 逐句英文翻译（字幕）；没有对应翻译时为 None
+    en_status: Literal["draft", "reviewed"] | None
+    en_note: str | None
 
 
 class Omitted(Strict):
@@ -120,6 +123,8 @@ class Stats(Strict):
     confirmed: int
     variant: int
     inferred: int
+    translated: int
+    reviewed: int
 
 
 class PhraseModel(Strict):
