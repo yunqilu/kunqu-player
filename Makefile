@@ -3,7 +3,7 @@ API_RUN := $(COMPOSE) run --rm --no-deps -w /work/backend api
 WEB_RUN := $(COMPOSE) run --rm --no-deps web
 
 .DEFAULT_GOAL := help
-.PHONY: help build up down logs test smoke verify clean lyrics
+.PHONY: help build up down logs test smoke verify clean lyrics phrases
 
 help: ## 列出所有 target
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
@@ -32,6 +32,9 @@ verify: test smoke ## test + smoke
 
 lyrics: ## 从 docx 重新生成 data/raw/xunmeng-lyrics.txt
 	$(API_RUN) python -m app.lyrics ../data/raw/xunmeng-lyrics.docx ../data/raw/xunmeng-lyrics.txt
+
+phrases: ## 打印断句结果（分句、状态、依据），供人工检查
+	$(API_RUN) python -m app.pipeline
 
 clean: ## 移除容器、卷和本项目构建的镜像
 	$(COMPOSE) down -v --rmi local --remove-orphans
