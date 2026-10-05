@@ -9,6 +9,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
+from functools import lru_cache
 from pathlib import Path
 
 PUNCTUATION = "，。！？；、："
@@ -456,8 +457,14 @@ def build_phrase_model(model: dict, lyrics: str, overrides: dict) -> dict:
     }
 
 
+@lru_cache
+def phrase_model(piece_id: str) -> dict:
+    """进程内缓存；改了歌词或 overrides 之后要重启服务。"""
+    return build_phrase_model(**load_inputs(piece_id))
+
+
 if __name__ == "__main__":
-    built = build_phrase_model(**load_inputs("xunmeng"))
+    built = phrase_model("xunmeng")
     by_id = {p["id"]: p for p in built["phrases"]}
     for section in built["sections"]:
         print(f"\n【{section['qupai'] or '—'}】{section['kind']}")
