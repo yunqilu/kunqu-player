@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 
 import ScoreReviewPanel from '../../src/components/ScoreReviewPanel.vue'
+import { setLang } from '../../src/i18n/index.js'
 import { createScoreReviewState } from '../../src/composables/useScoreReview.js'
 import { projectionHash } from '../../src/score/review/compileReview.js'
 
@@ -41,12 +42,41 @@ describe('Viewer score review loop', () => {
     expect(state.result.value.playbackPlan.events).toEqual([])
     expect(state.result.value.canonicalScore).toEqual(canonical)
 
+    setLang('zh', null)
     const wrapper = mount(ScoreReviewPanel, { props: { state } })
     expect(wrapper.get('[aria-label="五线谱审阅"]').exists()).toBe(true)
     await wrapper.findAll('.review-list button')[1].trigger('click')
     expect(wrapper.text()).toContain('上/')
     expect(wrapper.text()).toContain('review-line')
     wrapper.unmount()
+  })
+
+  test('shows its interface in English, keeping lyrics and gongche source text Chinese', async () => {
+    setLang('en', null)
+    const state = createScoreReviewState({ projection, manifest })
+    const wrapper = mount(ScoreReviewPanel, { props: { state } })
+
+    expect(wrapper.get('[aria-label="Staff score review"]').exists()).toBe(true)
+    expect(wrapper.find('.review-head strong').text()).toBe('Staff score review')
+    expect(wrapper.find('.count.inferred').text()).toMatch(/^Inferred \d+$/)
+    expect(wrapper.find('.playback-toggle').text()).toBe('Playback effects')
+    expect(wrapper.find('.import-button').text()).toBe('Import manifest')
+    expect(wrapper.find('.review-detail p').text()).toMatch(/^Select an inferred item or a diagnostic/)
+
+    await wrapper.findAll('.review-list button')[1].trigger('click')
+    expect(wrapper.findAll('.review-detail dt').map((w) => w.text())).toEqual(['ID', 'Source text', 'Position', 'Rules', 'Evidence', 'Note'])
+    expect(wrapper.find('.editor button').text()).toBe('Confirm and regenerate')
+    expect(wrapper.text()).toContain('上/')
+
+    const chrome = [
+      ...wrapper.findAll('option').map((w) => w.text()),
+      ...wrapper.findAll('[aria-label]').map((w) => w.attributes('aria-label')),
+      ...wrapper.findAll('[placeholder]').map((w) => w.attributes('placeholder')),
+      ...wrapper.findAll('dt').map((w) => w.text()),
+    ]
+    expect(chrome.filter((text) => /[\u3400-\u9fff]/.test(text))).toEqual([])
+    wrapper.unmount()
+    setLang('zh', null)
   })
 
   test('reloads a downloaded manifest deterministically and filters by section and field', () => {

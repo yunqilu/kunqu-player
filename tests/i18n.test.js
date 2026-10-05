@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import en from '../src/i18n/en.js'
 import zh from '../src/i18n/zh.js'
-import { QUPAI, qupaiLabel, qupaiTip } from '../src/i18n/qupai.js'
+import { QUPAI, REVIEW_SECTIONS, qupaiLabel, qupaiName, qupaiTip } from '../src/i18n/qupai.js'
 import { TERMS, isMovementTrack, termFull, termShort } from '../src/i18n/terms.js'
 import { PLAY_INFO, PLAY_INFO_EN, playInfo } from '../src/data/meta.js'
 import { initialLang, lang, setLang, t } from '../src/i18n/index.js'
@@ -125,6 +125,15 @@ describe('qupai names', () => {
 
     expect(qupaiLabel('山坡羊')).toBe('【山坡羊】')
     expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('name review sections in English, including the labels that are not qupai', () => {
+    expect(qupaiName('忒忒令')).toBe('Tè Tè Lìng')
+    expect(qupaiName('念白（待复核）')).toBe('Spoken (to be verified)')
+    expect(qupaiName('某段')).toBe('某段')
+    expect(Object.values(REVIEW_SECTIONS).filter((v) => HAN.test(v))).toEqual([])
+    setLang('zh', null)
+    expect(qupaiName('忒忒令')).toBe('忒忒令')
   })
 
   it('explain what a qupai is on hover, in English only', () => {

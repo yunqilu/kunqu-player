@@ -201,6 +201,8 @@ const attrTitle = (a) => (isMovementTrack(a.track) ? a.type : termFull(a.type))
   color: var(--dai);
   font-size: 20px;
 }
+/* 英文提示横排：竖排容器里的拉丁字母会整行侧躺 */
+.prelude:lang(en) { writing-mode: horizontal-tb; font-size: 15px; }
 
 /* ── 每个字：margin-right 预留工尺空间，工尺绝对定位不撑高 ── */
 .word {
