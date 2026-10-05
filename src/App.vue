@@ -4,6 +4,7 @@ import LeftColumn from './components/LeftColumn.vue'
 import ReaderView from './components/ReaderView.vue'
 import Transport from './components/Transport.vue'
 import Timeline from './components/Timeline.vue'
+import PhraseFlow from './components/PhraseFlow.vue'
 import ScoreReviewPanel from './components/ScoreReviewPanel.vue'
 import { clock } from './composables/useClock'
 import { model } from './lib/model'
@@ -76,6 +77,7 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
         </div>
 
         <Transport :show-timeline="showTimeline" @toggle-timeline="showTimeline = !showTimeline" />
+        <PhraseFlow />
         <Timeline v-show="showTimeline" />
       </div>
     </div>
@@ -100,7 +102,7 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
 .go:hover, .file:hover { border-color: var(--zhu); color: var(--zhu); }
 .file { cursor: pointer; }
 
-.stage { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; height: 55vh; }
+.stage { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; height: 40vh; }
 @media (max-width: 860px) { .stage { grid-template-columns: 1fr; } }
 .videowrap { position: relative; aspect-ratio: 16/9; height: 100%; background: #15120d; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 28px -16px #0009; }
 video { width: 100%; height: 100%; display: block; background: #15120d; object-fit: contain; }

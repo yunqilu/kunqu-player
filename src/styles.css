@@ -239,8 +239,10 @@ button { font-family: inherit; cursor: pointer; }
 }
 .main {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  /* 舞台 / 控制条 / 时长排版（吃掉剩余高度）/ 多轨时间轴 */
+  grid-template-rows: auto auto minmax(32vh, 1fr) auto;
   min-height: 0;
+  overflow-y: auto;            /* 窗口太矮、放不下时才滚动 */
   padding: 10px 14px 12px;
   gap: 8px;
 }

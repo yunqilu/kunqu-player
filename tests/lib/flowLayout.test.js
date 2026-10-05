@@ -117,3 +117,32 @@ describe('spanX', () => {
     expect(spanX(layout, 2, 2.001, 6).w).toBe(6)
   })
 })
+
+describe('packLines', () => {
+  const pack = async (items, max) => (await import('../../src/lib/flowLayout.js')).packLines(items, max)
+
+  it('keeps items on one line when they do not collide', async () => {
+    const items = [{ x: 0, need: 10 }, { x: 10, need: 10 }, { x: 30, need: 10 }]
+
+    expect(await pack(items)).toBe(1)
+    expect(items.map((n) => n.line)).toEqual([0, 0, 0])
+  })
+
+  it('moves an item to the next line when the glyph before it is still in the way', async () => {
+    const items = [{ x: 0, need: 20 }, { x: 5, need: 20 }, { x: 10, need: 20 }, { x: 22, need: 20 }]
+
+    expect(await pack(items)).toBe(3)
+    expect(items.map((n) => n.line)).toEqual([0, 1, 2, 0])
+  })
+
+  it('never uses more than the allowed lines; the least crowded line takes the overflow', async () => {
+    const items = [{ x: 0, need: 30 }, { x: 1, need: 20 }, { x: 2, need: 30 }]
+
+    expect(await pack(items, 2)).toBe(2)
+    expect(items.map((n) => n.line)).toEqual([0, 1, 1])
+  })
+
+  it('reports zero lines for an empty row', async () => {
+    expect(await pack([])).toBe(0)
+  })
+})

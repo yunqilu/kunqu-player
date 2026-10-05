@@ -57,3 +57,21 @@ export function spanX(layout, s, e, minW = 0) {
   const x = timeToX(layout, s)
   return { x, w: Math.max(minW, timeToX(layout, e) - x) }
 }
+
+/**
+ * 按时间定位的小字形（工尺音）挤在一起时，错开到下一排，x 不变。
+ * items 按 x 升序，每项 {x, need}（need = 字形实际要占的宽度）；写回 line，返回用到的排数。
+ */
+export function packLines(items, maxLines = 3) {
+  const ends = []
+  for (const item of items) {
+    let line = ends.findIndex((end) => end <= item.x)
+    if (line < 0) {
+      if (ends.length < maxLines) line = ends.length
+      else line = ends.indexOf(Math.min(...ends))   // 排满了：放到最不挤的一排
+    }
+    ends[line] = item.x + item.need
+    item.line = line
+  }
+  return ends.length
+}
