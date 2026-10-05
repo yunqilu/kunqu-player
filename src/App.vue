@@ -8,27 +8,54 @@ import PhraseFlow from './components/PhraseFlow.vue'
 import ScoreReviewPanel from './components/ScoreReviewPanel.vue'
 import { clock } from './composables/useClock'
 import { model } from './lib/model'
+import { probeVideo } from './lib/video'
+
+// E1 新增的英文文案先集中在这里；E2 建好 i18n 模块后搬进 src/i18n/{en,zh}.js
+const TEXT = {
+  loading: 'Loading video…',
+  missing: 'No video found at media/xunmeng.mp4. Put the file there and reload, or load one from a URL or a local file.',
+  failed: 'This video could not be played. Try another URL or a local file.',
+  change: 'Change video',
+}
 
 const videoEl = ref(null)
 const urlInput = ref('')
 const showTimeline = ref(true)
 const hasVideo = clock.hasVideo
+// probing → loading → ready；探测不到是 missing，载入或解码失败是 failed
+const videoState = ref('probing')
+const showSource = ref(false)
 
-function bindVideo() {
+function setSrc(src) {
   const el = videoEl.value
-  el.addEventListener('loadedmetadata', () => clock.attachVideo(el), { once: true })
+  videoState.value = 'loading'
+  el.addEventListener('loadedmetadata', () => {
+    clock.attachVideo(el)
+    videoState.value = 'ready'
+    showSource.value = false
+  }, { once: true })
+  el.src = src
+}
+function onVideoError() {
+  if (!videoEl.value.getAttribute('src')) return
+  videoState.value = 'failed'
+  showSource.value = true
 }
 function loadUrl() {
   const u = urlInput.value.trim()
   if (!u) return
-  videoEl.value.src = u
-  bindVideo()
+  setSrc(u)
 }
 function onFile(e) {
   const f = e.target.files[0]
   if (!f) return
-  videoEl.value.src = URL.createObjectURL(f)
-  bindVideo()
+  setSrc(URL.createObjectURL(f))
+}
+async function autoLoad() {
+  const url = await probeVideo()
+  if (videoState.value !== 'probing') return // 探测期间用户已经自己选了视频
+  if (url) setSrc(url)
+  else { videoState.value = 'missing'; showSource.value = true }
 }
 
 function onKey(e) {
@@ -41,7 +68,7 @@ function onKey(e) {
   else if (e.code === 'ArrowDown') { e.preventDefault(); if (i >= 0 && i < model.lines.length - 1) clock.seek(model.lines[i + 1].s) }
 }
 
-onMounted(() => { clock.start(); window.addEventListener('keydown', onKey) })
+onMounted(() => { clock.start(); window.addEventListener('keydown', onKey); autoLoad() })
 onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) })
 </script>
 
@@ -54,7 +81,8 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
         <div class="t2">{{ model.meta.performer }}　{{ model.meta.source }}　声腔标注 · {{ model.lines.length }} 句</div>
       </div>
       <div class="spacer"></div>
-      <div class="vsrc">
+      <button v-if="!showSource" class="go" @click="showSource = true">{{ TEXT.change }}</button>
+      <div v-else class="vsrc">
         <input v-model="urlInput" class="url" placeholder="视频直链 URL（https://…/寻梦.mp4）" @keyup.enter="loadUrl" />
         <button class="go" @click="loadUrl">载入</button>
         <label class="file">本地<input type="file" accept="video/*" @change="onFile" hidden /></label>
@@ -66,12 +94,17 @@ onUnmounted(() => { clock.stop(); window.removeEventListener('keydown', onKey) }
       <div class="main">
         <div class="stage">
           <div class="videowrap">
-            <video ref="videoEl" playsinline></video>
+            <video ref="videoEl" playsinline @error="onVideoError"></video>
             <div v-if="!hasVideo" class="novideo">
               <div class="play-ic">▶</div>
-              <div>未载入视频 — 输入直链或选本地文件</div>
-              <div class="sm">未载入时仍可按 ▶ / 空格 用「虚拟时间轴」预览同步</div>
+              <div v-if="videoState === 'probing' || videoState === 'loading'">{{ TEXT.loading }}</div>
+              <template v-else>
+                <div class="hint">{{ videoState === 'failed' ? TEXT.failed : TEXT.missing }}</div>
+                <div>未载入视频 — 输入直链或选本地文件</div>
+                <div class="sm">未载入时仍可按 ▶ / 空格 用「虚拟时间轴」预览同步</div>
+              </template>
             </div>
+            <div v-else-if="videoState === 'failed'" class="vfail">{{ TEXT.failed }}</div>
           </div>
           <ReaderView />
         </div>
@@ -109,6 +142,8 @@ video { width: 100%; height: 100%; display: block; background: #15120d; object-f
 .novideo { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; gap: 6px; color: #b9ad97; padding: 16px; }
 .play-ic { font-size: 34px; opacity: .5; }
 .novideo .sm { font-size: 11.5px; opacity: .7; }
+.novideo .hint { max-width: 34em; font-size: 12.5px; line-height: 1.5; color: #e3d8c2; }
+.vfail { position: absolute; left: 0; right: 0; top: 0; padding: 6px 12px; font-size: 12.5px; text-align: center; color: #e3d8c2; background: #15120dcc; }
 .review-drawer { position: fixed; z-index: 30; right: 14px; bottom: 12px; width: min(820px, calc(100vw - 28px)); }
 .review-drawer > summary { width: max-content; margin-left: auto; padding: 7px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: 0 5px 18px #0002; cursor: pointer; list-style: none; }
 .review-drawer[open] > summary { margin-bottom: 6px; }

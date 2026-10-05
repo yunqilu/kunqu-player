@@ -65,6 +65,7 @@ PIECES = {
         "model": "src/data/viewerModel.json",
         "lyrics": "data/raw/xunmeng-lyrics.txt",
         "overrides": "data/review/phrasing-overrides.json",
+        "video": "xunmeng.mp4",  # 相对 MEDIA_DIR，见 app/media.py
     },
 }
 

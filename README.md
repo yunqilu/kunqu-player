@@ -17,7 +17,22 @@ make build   # 第一次，或改了依赖之后
 make up      # 启动后端和前端
 ```
 
-然后打开 <http://127.0.0.1:5173>。视频文件不在仓库里：在页面右上角填直链，或点"本地"选文件。不载入视频也能按 ▶ 或空格，用虚拟时间轴预览同步。
+然后打开 <http://127.0.0.1:5173>。
+
+### 视频
+
+把《寻梦》的录像放到仓库里的 `media/xunmeng.mp4`，页面打开时就会自动载入，进度条可以拖动：
+
+```bash
+mkdir -p media
+cp /path/to/your/video.mp4 media/xunmeng.mp4
+```
+
+视频不在仓库里，`media/` 已写进 `.gitignore`：央视的录像有版权，而这个仓库是公开的；另外 GitHub 单个文件上限是 100 MB。视频只留在本机，由后端读出来给页面。
+
+- 想把视频放在别处：设置 api 容器的环境变量 `MEDIA_DIR`（默认 `/work/media`，也就是仓库里的 `media/`），并把那个目录挂载进容器。
+- 没有放视频时，页面会显示提示，并保留右上角的入口：填直链，或点"本地"选文件。载入成功后这个入口收成一个 `Change video` 按钮。
+- 不载入视频也能按 ▶ 或空格，用虚拟时间轴预览同步。
 
 | 命令 | 作用 |
 |---|---|
@@ -49,7 +64,8 @@ data/review/phrasing-overrides.json ┘                                   │
 | 位置 | 内容 |
 |---|---|
 | `backend/app/pipeline.py` | 断句：解析歌词、与演唱逐字对齐、处理对不上的字、尾段、轨道归句 |
-| `backend/app/models.py`、`api.py` | 响应模型和三个路由 |
+| `backend/app/models.py`、`api.py` | 响应模型和路由 |
+| `backend/app/media.py`、`src/lib/video.js` | 视频：后端找文件，前端探测并自动载入 |
 | `src/lib/model.js` | `loadModel()` 取数据并填充全应用共享的 `model` |
 | `src/lib/outline.js`、`components/LeftColumn.vue` | 左栏的两级目录 |
 | `src/lib/flowLayout.js`、`flowPrefs.js`、`components/PhraseFlow.vue` | 时长排版视图 |
@@ -64,6 +80,7 @@ data/review/phrasing-overrides.json ┘                                   │
 | `GET /api/health` | `{"ok": true}` |
 | `GET /api/pieces` | 曲目列表 |
 | `GET /api/pieces/{piece_id}/phrases` | 断句结果；未知曲目返回 404 和一句说明 |
+| `GET`、`HEAD /api/pieces/{piece_id}/video` | `media/` 里的视频，支持 HTTP Range；文件不存在或曲目未知返回 404 和一句说明 |
 
 ## 断句是怎么来的
 
