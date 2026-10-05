@@ -148,3 +148,6 @@ vite.config.ts.timestamp-*
 # Python
 __pycache__/
 .pytest_cache/
+
+# macOS
+.DS_Store
