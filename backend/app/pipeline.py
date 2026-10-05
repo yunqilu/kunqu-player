@@ -335,6 +335,76 @@ def tail_phrases(chars: list[dict], entries: list[dict], breaths: list[dict],
     return phrases
 
 
+# ── 轨道归句 ─────────────────────────────────────────────────────────────────
+
+QIANGGE_TRACK = "腔格轨"
+ACTION_TRACKS = {"动作": False, "临时动作轨": True}  # 轨名 → provisional
+POINT_TRACKS = {"动作": False, "临时腔格轨": True}
+
+
+def _assign_blocks(phrases: list[dict], blocks: list[dict], **extra) -> list[list[dict]]:
+    """块分给所有与它时间重叠的分句；s/e 是原始时间，cs/ce 裁剪到句内。"""
+    assigned: list[list[dict]] = [[] for _ in phrases]
+    for block in blocks:
+        hits = [k for k, p in enumerate(phrases) if block["s"] < p["e"] and block["e"] > p["s"]]
+        for k in hits:
+            assigned[k].append({
+                "t": block["t"],
+                "s": block["s"],
+                "e": block["e"],
+                "cs": max(block["s"], phrases[k]["s"]),
+                "ce": min(block["e"], phrases[k]["e"]),
+                "cont_prev": k != hits[0],
+                "cont_next": k != hits[-1],
+                **extra,
+            })
+    return assigned
+
+
+def _owner(phrases: list[dict], t: float) -> int:
+    """时间点归到 s ≤ t ≤ e 的分句；落在两句之间的空隙里归前一句。"""
+    for k, following in enumerate(phrases[1:]):
+        if t <= phrases[k]["e"] or t < following["s"]:
+            return k
+    return len(phrases) - 1
+
+
+def attach_tracks(phrases: list[dict], model: dict) -> None:
+    tracks = {t["name"]: t for t in model.get("tracks", [])}
+
+    def blocks(name: str) -> list[dict]:
+        return tracks.get(name, {}).get("blocks", [])
+
+    qiangge = _assign_blocks(phrases, blocks(QIANGGE_TRACK))
+    actions: list[list[dict]] = [[] for _ in phrases]
+    for name, provisional in ACTION_TRACKS.items():
+        for k, items in enumerate(_assign_blocks(phrases, blocks(name), provisional=provisional)):
+            actions[k] += items
+
+    points: list[list[dict]] = [[] for _ in phrases]
+    for name, provisional in POINT_TRACKS.items():
+        for point in tracks.get(name, {}).get("points", []):
+            points[_owner(phrases, point["t"])].append({**point, "provisional": provisional})
+    breaths: list[list[dict]] = [[] for _ in phrases]
+    for breath in model.get("breaths", []):
+        breaths[_owner(phrases, breath["t"])].append(dict(breath))
+
+    for k, phrase in enumerate(phrases):
+        phrase["qiangge"] = sorted(qiangge[k], key=lambda x: x["cs"])
+        phrase["actions"] = sorted(actions[k], key=lambda x: x["cs"])
+        phrase["points"] = sorted(points[k], key=lambda x: x["t"])
+        phrase["breaths"] = sorted(breaths[k], key=lambda x: x["t"])
+
+
+def viewer_tracks(model: dict) -> list[dict]:
+    """原样提供给 Timeline 的轨道；过滤规则与 src/lib/model.js 一致。"""
+    return [
+        {**track, "points": [p for p in track.get("points", []) if "点状腔格" not in p["tk"]]}
+        for track in model.get("tracks", [])
+        if "临时" not in track["name"]
+    ]
+
+
 # ── 汇总 ─────────────────────────────────────────────────────────────────────
 
 
@@ -364,12 +434,14 @@ def build_phrase_model(model: dict, lyrics: str, overrides: dict) -> dict:
         chars[alignment.tail_start:], overrides.get("tail", []), model.get("breaths", []), excluded,
     )
     phrases = [{"id": f"p{n + 1:03d}", "index": n, **p} for n, p in enumerate(phrases)]
+    attach_tracks(phrases, model)
 
     count = Counter(p["status"] for p in phrases)
     return {
         "meta": model["meta"],
         "sections": build_sections(phrases),
         "phrases": phrases,
+        "tracks": viewer_tracks(model),
         "omitted": omitted_lyrics(clauses, alignment),
         "excluded": excluded,
         "stats": {
